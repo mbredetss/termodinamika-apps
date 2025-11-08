@@ -13,4 +13,4 @@ di menu materi ini adalah sebuah learning path. Terdapat beberapa materi, sepert
 NOTE: 
 - TIdak usah menjalankan perintah 'flutter run' di akhir saat kamu telah selesai menulis code, karena projek ini telah berjalan dalam mode debuggin (f5).
 - Tidak usah mengubah file pada folder linux, windows & macos karena projek ini nantinya hanya berjalan di website & android.
-- tidak perlu menjalankan perintah 'flutter pub get' karena Flutter telah otomatis menjalankannya secara otomatis.
+- tidak perlu menjalankan perintah 'flutter pub get' karena Flutter telah otomatis menjalankannya secara otomatis. 
