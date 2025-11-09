@@ -20,7 +20,7 @@
     }
   },
   "hosting": {
-    "source": "./termodinamika_apps", 
+    "source": ".",
     "ignore": [
       "firebase.json",
       "**/.*",

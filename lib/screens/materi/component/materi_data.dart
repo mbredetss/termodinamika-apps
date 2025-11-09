@@ -95,7 +95,7 @@ Untuk memahami proses-proses ini, kita perlu mengenal konsep gas ideal dan hukum
 
 Persamaan ini menggambarkan keterkaitan antara besaran-besaran utama dalam sistem gas ideal, yang menjadi dasar dalam berbagai analisis termodinamika.
 ''',
-        'isDone': true,
+        'isDone': false,
       }, 
       {
         'nama': 'Hukum I Termodinamika',
