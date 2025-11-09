@@ -1,8 +1,35 @@
-final String markdownContent = r'''Termodinamika merupakan cabang fisika yang mempelajari hubungan antara panas, kerja, dan energi. Dalam kehidupan sehari-hari, konsep termodinamika dapat ditemukan pada berbagai peristiwa, seperti mesin mobil yang mengubah energi panas menjadi gerak, atau lemari es yang memindahkan panas dari ruang dingin ke lingkungan.
+Map<String, dynamic> ujianAkhir(String namaMateri) {
+  return {
+    'nama': 'Latihan Soal $namaMateri',
+    'isiMateri': '''
+# Aturan
+
+Kuis ini bertujuan untuk menguji pengetahuan Anda tentang materi Termodinamika: $namaMateri
+
+Terdapat 10 pertanyaan yang harus dikerjakan dalam soal latihan ini. Beberapa ketentuannya sebagai berikut:
+- Syarat kelulusan : minimal harus menjawab 8 soal dengan benar
+- Durasi ujian : 3-7 menit / soal
+
+Apabila tidak memenuhi syarat kelulusan, maka Anda harus menunggu selama 15 menit untuk mengulang pengerjaan latihan soal kembali. Manfaatkan waktu tunggu tersebut untuk mempelajari kembali materi sebelumnya, ya.
+
+Selamat Mengerjakan!
+''',
+    'isDone': false,
+  };
+}
+
+List<Map<String, dynamic>> dataMateri = [
+  {
+    'namaMateri': 'Gas Ideal',
+    'subMateri': [
+      {
+        'nama': 'Berkenalan dengan Gas Ideal',
+        'isiMateri': '''
+Termodinamika merupakan cabang fisika yang mempelajari hubungan antara panas, kerja, dan energi. Dalam kehidupan sehari-hari, konsep termodinamika dapat ditemukan pada berbagai peristiwa, seperti mesin mobil yang mengubah energi panas menjadi gerak, atau lemari es yang memindahkan panas dari ruang dingin ke lingkungan.
 
 Untuk memahami proses-proses ini, kita perlu mengenal konsep gas ideal dan hukum-hukum termodinamika yang menjadi dasar perhitungannya.
 
-1. **Gas Ideal** 
+**Gas Ideal** 
 
    Gas ideal merupakan konsep dasar dalam termodinamika yang menggambarkan perilaku gas secara teoretis. Dalam pandangan mikroskopik, gas ideal didefinisikan sebagai gas yang terdiri atas partikel-partikel kecil yang disebut molekul (Hartini, 2015). Molekul-molekul ini bergerak secara acak atau serampangan dan selalu mengikuti hukum-hukum gerak Newton.
 
@@ -67,10 +94,13 @@ Untuk memahami proses-proses ini, kita perlu mengenal konsep gas ideal dan hukum
 - T= Suhu mutlak (K)
 
 Persamaan ini menggambarkan keterkaitan antara besaran-besaran utama dalam sistem gas ideal, yang menjadi dasar dalam berbagai analisis termodinamika.
-
-1. **Hukum I Termodinamika**
-
-   Hukum pertama termodinamika merupakan dasar utama dalam memahami hubungan antara panas, kerja, dan energi. Hukum ini pada dasarnya adalah penerapan dari hukum kekekalan energi, yang menyatakan bahwa energi tidak dapat diciptakan maupun dimusnahkan, tetapi hanya dapat diubah dari satu bentuk ke bentuk lainnya (Tipler, 1998).
+''',
+        'isDone': true,
+      }, 
+      {
+        'nama': 'Hukum I Termodinamika',
+        'isiMateri': '''
+Hukum pertama termodinamika merupakan dasar utama dalam memahami hubungan antara panas, kerja, dan energi. Hukum ini pada dasarnya adalah penerapan dari hukum kekekalan energi, yang menyatakan bahwa energi tidak dapat diciptakan maupun dimusnahkan, tetapi hanya dapat diubah dari satu bentuk ke bentuk lainnya (Tipler, 1998).
 
    Dalam konteks sistem termodinamika, hukum ini menjelaskan bahwa panas (Q) yang diberikan kepada suatu sistem akan digunakan untuk menaikkan energi dalam sistem (ΔU) dan melakukan kerja (W) oleh sistem tersebut terhadap lingkungannya. Secara matematis, hukum ini dapat dinyatakan sebagai:
 
@@ -87,9 +117,12 @@ Persamaan ini menggambarkan keterkaitan antara besaran-besaran utama dalam siste
 - W= Kerja yang dilakukan oleh sistem
 
 Persamaan ini menunjukkan bahwa jumlah energi panas yang masuk ke dalam sistem akan terbagi menjadi dua bagian: sebagian menjadi energi dalam (meningkatkan suhu atau energi mikroskopik partikel), dan sebagian lagi menjadi kerja yang dilakukan oleh sistem, misalnya dalam bentuk pemuaian gas.
-
-**Proses-Proses dalam Termodinamika**
-
+''',
+        'isDone': false,
+      },
+      {
+        'nama': 'Proses-Proses dalam Termodinamika',
+        'isiMateri': '''
 Hukum pertama termodinamika dapat diterapkan dalam berbagai proses yang terjadi pada gas ideal, yaitu proses isobarik, isotermal, isokhorik, dan adiabatik. Masing-masing proses memiliki kondisi dan karakteristik tersendiri, seperti berikut ini:
 
 - Proses Isobarik (Tekanan Tetap)
@@ -197,10 +230,13 @@ Q=nRTln⁡V2V1
   *(Sumber: Palupi, 2009)*
 
 Dengan memahami berbagai jenis proses ini, kita dapat melihat bagaimana hukum pertama termodinamika berlaku dalam setiap kondisi. Setiap perubahan keadaan gas selalu melibatkan perpindahan energi dalam bentuk kalor dan kerja, namun jumlah total energi selalu kekal.
-
-1. **Hukum II Termodinamika**
-
-   Jika hukum pertama termodinamika menjelaskan tentang jumlah energi (bahwa energi kekal), maka hukum kedua termodinamika menjelaskan arah alami dari perubahan energi tersebut.
+''',
+        'isDone': false,
+      },
+      {
+        'nama': 'Hukum II Termodinamika',
+        'isiMateri': '''
+Jika hukum pertama termodinamika menjelaskan tentang jumlah energi (bahwa energi kekal), maka hukum kedua termodinamika menjelaskan arah alami dari perubahan energi tersebut.
 
    Hukum ini berhubungan dengan bagaimana energi panas berpindah dan seberapa efisien energi panas dapat diubah menjadi kerja.
 
@@ -308,4 +344,120 @@ Efisiensi maksimum mesin panas dicapai oleh mesin Carnot, dan tidak ada mesin ny
 
 [ref1]: Aspose.Words.f522656b-4090-4b3b-bcc1-ff7222952d16.002.png
 [ref2]: Aspose.Words.f522656b-4090-4b3b-bcc1-ff7222952d16.003.png
-''';
+''',
+        'isDone': false,
+      },
+      ujianAkhir('Gas Ideal')
+    ],
+    'soal': [
+      {
+        'isiSoal': 'Jelaskan apa yang dimaksud dengan hukum pertama termodinamika, dan berikan contoh penerapannya dalam kehidupan sehari-hari!',
+        'kunciJawaban': '“Hukum pertama termodinamika menyatakan bahwa energi tidak dapat diciptakan maupun dimusnahkan, tetapi dapat diubah dari satu bentuk ke bentuk lainnya”. Artinya kalor yang masuk ke sistem dapat menaikkan energi dalam sistem atau digunakan untuk melakukan usaha.', 
+        'soalKategori': '', 
+        'batasWaktuPengerjaan': 10 
+      },
+      {
+        'isiSoal': 'Sebongkah tembaga bermassa 200 gram dipanaskan dari suhu 25°C hingga 125°C. Jika kalor jenis tembaga c = 0,39 J/g°C, hitunglah kalor yang diperlukan!',
+        'kunciJawaban': '''
+Diketahui: m = 200 g, 
+c = 0,39 J/g°C
+ΔT = 100°C
+Ditanyakan : Q = …?
+Penyelesaian : 
+Q = m × c × ΔT
+Q = 200 × 0,39 × 100 
+Q = 7800 J
+Jadi, kalor yang diperlukan untuk memanaskan tembaga tersebut adalah Q = 7,8 × 10³ Joule.
+''',
+        'batasWaktuPengerjaan': 300, 
+      }, 
+      {
+        'isiSoal': 'Air bermassa 200 gram bersuhu 25°C dicampur dengan air panas 100 gram bersuhu 80°C dalam wadah kalorimeter yang diabaikan kalor jenisnya. Hitunglah suhu akhir campuran! (Diketahui kalor jenis air c = 4,2 J/g°C).',
+        'kunciJawaban': '''
+Diketahui : m1 = 100 g
+m2 = 200 g
+T1 = 80°C
+T2 = 25°C
+Ditanyakan : Tf = …?
+Penyelesaian :
+Qpanas = Qdingin
+m1c (T1 - Tf) = m2c (Tf - T2)
+karena kalir jenis air sama, maka c dapat di hilangkan sehingga :
+m1 (T1 - Tf) = m2 (Tf - T2)
+100 (80 - Tf) = 200 (Tf - 25)
+8000 – 100 Tf = 200 Tf – 5000 
+13000 = 300 Tf 
+Tf = 13000/300
+Tf = 43,3°C
+Jadi, suhu akhir campuran air adalah Tf = 43,3°C.
+''',
+        'soalKategori': '', 
+        'batasWaktuPengerjaan': 300, 
+      }, 
+    ],
+    'isDoneMateri': false, 
+  },
+
+  {
+    'namaMateri': 'Apa itu ChatGPT',
+    'subMateri': [
+      {
+        'nama': 'Pengertian ChatGPT',
+        'isiMateri': '''
+ChatGPT adalah model bahasa berbasis kecerdasan buatan yang dikembangkan oleh OpenAI. 
+Model ini dilatih menggunakan jutaan teks dari internet untuk memahami dan menghasilkan bahasa manusia secara alami. 
+ChatGPT dapat menjawab pertanyaan, membantu menulis teks, membuat kode program, serta melakukan percakapan seperti manusia.
+
+Secara teknis, ChatGPT dibangun di atas arsitektur *Transformer* dan menggunakan model besar seperti GPT-3.5 atau GPT-4, 
+yang masing-masing memiliki miliaran parameter yang memungkinkan pemahaman konteks secara mendalam.
+''',
+        'isDone': false,
+      },
+      {
+        'nama': 'Cara Kerja ChatGPT',
+        'isiMateri': '''
+ChatGPT bekerja dengan memprediksi kata berikutnya dalam sebuah kalimat berdasarkan konteks sebelumnya. 
+Model ini tidak “mengerti” seperti manusia, tetapi menggunakan pola statistik dari data pelatihannya 
+untuk menghasilkan respons yang relevan dan masuk akal.
+
+Prosesnya melibatkan langkah-langkah:
+1. Pengguna memberikan *prompt* (input teks).
+2. Model menganalisis konteks dan memprediksi respons terbaik.
+3. Sistem menghasilkan teks baru secara berurutan hingga selesai.
+
+ChatGPT juga menggunakan teknik *reinforcement learning from human feedback* (RLHF) 
+agar jawabannya lebih sesuai dengan harapan manusia.
+''',
+        'isDone': false,
+      },
+      {
+        'nama': 'Manfaat ChatGPT',
+        'isiMateri': '''
+ChatGPT memiliki banyak manfaat di berbagai bidang, seperti:
+- **Pendidikan:** membantu belajar konsep baru, menjawab pertanyaan, dan menjelaskan teori.
+- **Pemrograman:** membantu menulis, menjelaskan, atau memperbaiki kode.
+- **Bisnis:** mendukung layanan pelanggan dan pembuatan konten otomatis.
+- **Produktivitas pribadi:** membantu menulis email, ringkasan, atau ide kreatif.
+
+Meskipun bermanfaat, pengguna tetap perlu memverifikasi informasi karena ChatGPT tidak selalu akurat 100%.
+''',
+        'isDone': false,
+      },
+      ujianAkhir('Apa itu Chat GPT')
+    ],
+    'soal': [
+      {
+        'isiSoal': 'Jelaskan secara singkat apa itu ChatGPT dan bagaimana cara kerjanya.',
+        'kunciJawaban': '''
+ChatGPT adalah model bahasa buatan yang dikembangkan oleh OpenAI untuk menghasilkan teks alami. 
+Model ini bekerja dengan memprediksi kata berikutnya berdasarkan konteks input, 
+menggunakan pola yang dipelajari dari data besar. 
+Teknologi ini memungkinkan ChatGPT menjawab pertanyaan dan berdialog seperti manusia.
+''',
+        'soalKategori': '', 
+        'batasWaktuPengerjaan': 300, // 5 menit
+      },
+    ],
+    'isDoneMateri': false, 
+  },
+];
