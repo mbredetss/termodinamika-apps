@@ -354,7 +354,7 @@ Efisiensi maksimum mesin panas dicapai oleh mesin Carnot, dan tidak ada mesin ny
         'isiSoal': 'Jelaskan apa yang dimaksud dengan hukum pertama termodinamika, dan berikan contoh penerapannya dalam kehidupan sehari-hari!',
         'kunciJawaban': '“Hukum pertama termodinamika menyatakan bahwa energi tidak dapat diciptakan maupun dimusnahkan, tetapi dapat diubah dari satu bentuk ke bentuk lainnya”. Artinya kalor yang masuk ke sistem dapat menaikkan energi dalam sistem atau digunakan untuk melakukan usaha.', 
         'soalKategori': '', 
-        'batasWaktuPengerjaan': 10 
+        'batasWaktuPengerjaan': 500,  
       },
       {
         'isiSoal': 'Sebongkah tembaga bermassa 200 gram dipanaskan dari suhu 25°C hingga 125°C. Jika kalor jenis tembaga c = 0,39 J/g°C, hitunglah kalor yang diperlukan!',

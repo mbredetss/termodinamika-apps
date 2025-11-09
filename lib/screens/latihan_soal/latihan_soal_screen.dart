@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../../utils/prompting.dart';
 
 class LatihanSoalScreen extends StatefulWidget {
@@ -81,13 +80,12 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
 
     try {
       // Load the .env file
-      await dotenv.load();
 
       var currentSoal = widget.soalList[currentQuestionIndex];
       
       // Call the prompting function
       Map<String, dynamic> result = await prompting(
-        apiKey: dotenv.env['GEMINI_API_KEY'] ?? '',
+        apiKey: 'AIzaSyAu8KLDdPzccOqSzZjRC6OyopIe7pSuGtk',
         question: isiSoal,
         kunciJawaban: currentSoal['kunciJawaban'] ?? '',
         jawabanSiswa: jawabanSiswa,
