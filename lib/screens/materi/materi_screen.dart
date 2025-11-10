@@ -9,6 +9,7 @@ import 'component/warning_modal.dart';
 import 'component/countdown_display.dart';
 import 'component/start_quiz_button.dart';
 import '../latihan_soal/latihan_soal_screen.dart';
+import '../../services/progress_service.dart';
 
 class MateriScreen extends StatefulWidget {
   final String? initialContent;
@@ -107,6 +108,8 @@ class _MateriScreenState extends State<MateriScreen> {
         currentSubMateriName = prevSubMateri['nama'] as String;
         bottomAppBarTitle = currentSubMateriName;
       });
+      // Save progress after updating isDone status
+      _saveProgress();
     }
     // If at the first subMateri of this materi, go to the last subMateri of the previous materi
     else if (currentMateriIndex > 0) {
@@ -119,6 +122,8 @@ class _MateriScreenState extends State<MateriScreen> {
           !currentSubMateriName.toLowerCase().contains('ujian')) {
         currentMateri['subMateri'][currentSubMateriIndex]['isDone'] = true;
       }
+      // Save progress after updating isDone status
+      _saveProgress();
       
       // Find the previous materi that has subMateri
       int prevMateriIndex = currentMateriIndex - 1;
@@ -137,6 +142,11 @@ class _MateriScreenState extends State<MateriScreen> {
         prevMateriIndex--;
       }
     }
+  }
+
+  // Save progress to SharedPreferences
+  Future<void> _saveProgress() async {
+    await ProgressService.saveProgress(dataMateri);
   }
 
   // Navigate to the next subMateri
@@ -213,6 +223,8 @@ class _MateriScreenState extends State<MateriScreen> {
         currentSubMateriName = nextSubMateri['nama'] as String;
         bottomAppBarTitle = currentSubMateriName;
       });
+      // Save progress after updating isDone status
+      _saveProgress();
     }
     // If at the last subMateri of this materi, check if we can go to the next materi
     else if (currentMateriIndex < dataMateri.length - 1) {
@@ -225,6 +237,8 @@ class _MateriScreenState extends State<MateriScreen> {
           !currentSubMateriName.toLowerCase().contains('ujian')) {
         currentMateri['subMateri'][currentSubMateriIndex]['isDone'] = true;
       }
+      // Save progress after updating isDone status
+      _saveProgress();
       
       // Check if the current materi is completed before allowing navigation to the next one
       if (isMateriCompleted(currentMateriIndex)) {

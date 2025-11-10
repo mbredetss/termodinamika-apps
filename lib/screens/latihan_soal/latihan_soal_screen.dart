@@ -6,6 +6,8 @@ import 'component/final_result_modal.dart';
 import 'component/question_display.dart';
 import 'component/submit_button.dart';
 import 'component/time_display.dart';
+import '../materi/component/materi_data.dart';
+import '../../services/progress_service.dart';
 
 class LatihanSoalScreen extends StatefulWidget {
   final List<Map<String, dynamic>> soalList;
@@ -163,6 +165,22 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
   }
   
   void showFinalResult() {
+    double scorePercentage = (correctAnswers / widget.soalList.length) * 100;
+    bool isPassed = scorePercentage >= 80; // 80% or more is passing
+
+    // If the quiz was passed, update the materi's isDoneMateri to true
+    if (isPassed && widget.materiName != null) {
+      for (var materi in dataMateri) {
+        if (materi['namaMateri'] == widget.materiName) {
+          materi['isDoneMateri'] = true;
+          break;
+        }
+      }
+      
+      // Save the updated progress
+      ProgressService.saveProgress(dataMateri);
+    }
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
