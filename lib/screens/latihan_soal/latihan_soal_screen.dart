@@ -30,6 +30,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
   int incorrectAttempts = 0; // Track incorrect attempts
   int currentQuestionIndex = 0;
   int correctAnswers = 0;
+  final TextEditingController _answerController = TextEditingController();
 
   @override
   void initState() {
@@ -42,6 +43,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
       int batasWaktu = currentSoal['batasWaktuPengerjaan'] ?? 180; // Default 3 minutes
       waktuDetik = batasWaktu;
       isiSoal = currentSoal['isiSoal'] ?? '';
+      _answerController.clear(); // Start with an empty answer field
     } else {
       soalKategori = widget.materiName ?? 'Latihan Soal';
       waktuDetik = 180;
@@ -61,6 +63,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
         // Timer ended, handle timeout by automatically submitting with "Siswa tidak menjawab apapun"
         timer.cancel();
         jawabanSiswa = 'Siswa tidak menjawab apapun';
+        _answerController.text = jawabanSiswa; // Update controller as well
         kirimJawaban();
       }
     });
@@ -69,6 +72,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
   @override
   void dispose() {
     timer?.cancel();
+    _answerController.dispose();
     super.dispose();
   }
 
@@ -91,7 +95,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
       
       // Call the prompting function
       Map<String, dynamic> result = {
-        'correctAnswer': true, 
+        'correctAnswer': false, 
         'explain': 'Jawaban Anda Benar Sekali!'
       };
 
@@ -129,6 +133,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
   void showCorrectAnswerModal(String explanation, bool isCorrect) {
     showDialog(
       context: context,
+      barrierDismissible: false, // Prevent dismissing by clicking outside
       builder: (BuildContext context) {
         return AnswerModal(
           isCorrect: isCorrect,
@@ -149,6 +154,10 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
                 int batasWaktu = nextSoal['batasWaktuPengerjaan'] ?? 180;
                 waktuDetik = batasWaktu;
               });
+              
+              // Clear the answer text field for the next question
+              _answerController.clear();
+              
               // Restart the timer for the next question
               startTimer();
             } else {
@@ -202,6 +211,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
 
     showDialog(
       context: context,
+      barrierDismissible: false, // Prevent dismissing by clicking outside
       builder: (BuildContext context) {
         return FinalResultModal(
           correctAnswers: correctAnswers,
@@ -255,12 +265,13 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
             // Soal essay
             QuestionDisplay(
               questionText: isiSoal,
-              answerText: jawabanSiswa,
+              answerText: _answerController.text,
               onAnswerChanged: (value) {
                 setState(() {
                   jawabanSiswa = value;
                 });
               },
+              controller: _answerController,
             ),
             const SizedBox(height: 16),
             // Submit button

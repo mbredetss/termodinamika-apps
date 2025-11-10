@@ -4,12 +4,14 @@ class QuestionDisplay extends StatelessWidget {
   final String questionText;
   final String answerText;
   final ValueChanged<String> onAnswerChanged;
+  final TextEditingController? controller;
 
   const QuestionDisplay({
     Key? key,
     required this.questionText,
     required this.answerText,
     required this.onAnswerChanged,
+    this.controller,
   }) : super(key: key);
 
   @override
@@ -46,6 +48,7 @@ class QuestionDisplay extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             TextField(
+              controller: controller,
               onChanged: onAnswerChanged,
               keyboardType: TextInputType.multiline,
               maxLines: null,
