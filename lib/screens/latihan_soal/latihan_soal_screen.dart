@@ -39,8 +39,10 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
     // Set the first question data
     if (widget.soalList.isNotEmpty) {
       var currentSoal = widget.soalList[currentQuestionIndex];
-      soalKategori = currentSoal['soalKategori'] ?? widget.materiName ?? 'Latihan Soal';
-      int batasWaktu = currentSoal['batasWaktuPengerjaan'] ?? 180; // Default 3 minutes
+      soalKategori =
+          currentSoal['soalKategori'] ?? widget.materiName ?? 'Latihan Soal';
+      int batasWaktu =
+          currentSoal['batasWaktuPengerjaan'] ?? 180; // Default 3 minutes
       waktuDetik = batasWaktu;
       isiSoal = currentSoal['isiSoal'] ?? '';
       _answerController.clear(); // Start with an empty answer field
@@ -92,7 +94,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
 
     try {
       var currentSoal = widget.soalList[currentQuestionIndex];
-      
+
       // Call the prompting function
       Map<String, dynamic> result = await prompting(
         apiKey: 'AIzaSyAu8KLDdPzccOqSzZjRC6OyopIe7pSuGtk',
@@ -120,8 +122,9 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
       showCorrectAnswerModal(explain, isCorrect);
     } catch (e) {
       // Handle error
+      debugPrint('Error: ${e.toString()}');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}')),
+        SnackBar(content: Text('Terjadi Error, silahkan kirim jawaban lagi')),
       );
       // Restart timer in case of error
       startTimer();
@@ -142,7 +145,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
           explanation: explanation,
           onContinue: () {
             Navigator.of(context).pop(); // Close modal
-            
+
             // Move to next question or finish quiz
             if (currentQuestionIndex < widget.soalList.length - 1) {
               // Move to next question
@@ -151,15 +154,15 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
                 var nextSoal = widget.soalList[currentQuestionIndex];
                 isiSoal = nextSoal['isiSoal'] ?? '';
                 jawabanSiswa = '';
-                
+
                 // Reset timer for the new question
                 int batasWaktu = nextSoal['batasWaktuPengerjaan'] ?? 180;
                 waktuDetik = batasWaktu;
               });
-              
+
               // Clear the answer text field for the next question
               _answerController.clear();
-              
+
               // Restart the timer for the next question
               startTimer();
             } else {
@@ -171,14 +174,16 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
       },
     );
   }
-  
+
   void showFinalResult() {
     // Record the quiz attempt to start the 15-minute cooldown (always done when finishing the quiz)
     if (widget.materiName != null) {
-      DateTime cooldownEndTime = DateTime.now().add(Duration(minutes: 15)); // 15 minutes from now
+      DateTime cooldownEndTime = DateTime.now().add(
+        Duration(minutes: 15),
+      ); // 15 minutes from now
       CooldownService.saveCooldown(widget.materiName!, cooldownEndTime);
     }
-    
+
     double scorePercentage = (correctAnswers / widget.soalList.length) * 100;
     bool isPassed = scorePercentage >= 80; // 80% or more is passing
 
@@ -188,13 +193,13 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
         if (materi['namaMateri'] == widget.materiName) {
           // Update the materi's completion status
           materi['isDoneMateri'] = true;
-          
+
           // Find and update the quiz subMateri's isDone status
           var subMateriList = materi['subMateri'] as List;
           for (int i = 0; i < subMateriList.length; i++) {
             var subMateri = subMateriList[i];
             String subMateriName = subMateri['nama'] as String;
-            
+
             // Update isDone status for the quiz/latihan soal subMateri
             if (subMateriName.toLowerCase().contains('latihan soal') ||
                 subMateriName.toLowerCase().contains('ujian')) {
@@ -202,11 +207,11 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
               break; // Exit after updating the quiz subMateri
             }
           }
-          
+
           break;
         }
       }
-      
+
       // Save the updated progress
       StorageService.saveProgress(dataMateri);
     }
@@ -277,10 +282,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
             ),
             const SizedBox(height: 16),
             // Submit button
-            SubmitButton(
-              onSubmit: kirimJawaban,
-              isLoading: isLoading,
-            ),
+            SubmitButton(onSubmit: kirimJawaban, isLoading: isLoading),
           ],
         ),
       ),
