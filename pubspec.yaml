@@ -39,6 +39,7 @@ dependencies:
   google_generative_ai: ^0.4.7
   flutter_dotenv: ^6.0.0
   dotenv: ^4.2.0
+  shared_preferences: ^2.2.2
 
 dev_dependencies:
   flutter_test:
