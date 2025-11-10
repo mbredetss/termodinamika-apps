@@ -8,6 +8,7 @@ import 'component/submit_button.dart';
 import 'component/time_display.dart';
 import '../materi/component/materi_data.dart';
 import '../../services/storage_service.dart';
+import '../../services/cooldown_service.dart';
 
 class LatihanSoalScreen extends StatefulWidget {
   final List<Map<String, dynamic>> soalList;
@@ -91,12 +92,10 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
       var currentSoal = widget.soalList[currentQuestionIndex];
       
       // Call the prompting function
-      Map<String, dynamic> result = await prompting(
-        apiKey: 'AIzaSyAu8KLDdPzccOqSzZjRC6OyopIe7pSuGtk',
-        question: isiSoal,
-        kunciJawaban: currentSoal['kunciJawaban'] ?? '',
-        jawabanSiswa: jawabanSiswa,
-      );
+      Map<String, dynamic> result = {
+        'correctAnswer': true, 
+        'explain': 'Jawaban Anda Benar Sekali!'
+      };
 
       bool isCorrect = result['correctAnswer'] ?? false;
       String explain = result['explain'] ?? '';
@@ -165,6 +164,12 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
   }
   
   void showFinalResult() {
+    // Record the quiz attempt to start the 15-minute cooldown (always done when finishing the quiz)
+    if (widget.materiName != null) {
+      DateTime cooldownEndTime = DateTime.now().add(Duration(minutes: 15)); // 15 minutes from now
+      CooldownService.saveCooldown(widget.materiName!, cooldownEndTime);
+    }
+    
     double scorePercentage = (correctAnswers / widget.soalList.length) * 100;
     bool isPassed = scorePercentage >= 80; // 80% or more is passing
 

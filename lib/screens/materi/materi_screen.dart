@@ -10,6 +10,7 @@ import 'component/countdown_display.dart';
 import 'component/start_quiz_button.dart';
 import '../latihan_soal/latihan_soal_screen.dart';
 import '../../services/storage_service.dart';
+import '../../services/cooldown_service.dart';
 
 class MateriScreen extends StatefulWidget {
   final String? initialContent;
@@ -25,7 +26,6 @@ class _MateriScreenState extends State<MateriScreen> {
   String? currentContent;
   String? currentSubMateriName;
   String? bottomAppBarTitle;
-  Map<String, DateTime>? lastQuizAttemptTime; // Track last quiz attempt time for each materi
   Timer? _countdownTimer;
   int _remainingCooldownTime = 0; // In seconds
   bool _isQuizAvailable = true;
@@ -43,10 +43,7 @@ class _MateriScreenState extends State<MateriScreen> {
     currentSubMateriName = findSubMateriName(currentContent);
     // Initialize bottom app bar title
     bottomAppBarTitle = widget.bottomAppBarTitle ?? 'Prasyarat Kemampuan';
-    
-    // Initialize cooldown tracking
-    lastQuizAttemptTime = <String, DateTime>{};
-    
+
     // Check if there's a cooldown for the current materi
     checkQuizAvailability();
   }
@@ -675,23 +672,26 @@ class _MateriScreenState extends State<MateriScreen> {
     );
   }
 
-  void checkQuizAvailability() {
+  void checkQuizAvailability() async {
     var currentIndex = findSubMateriIndex(currentContent);
     if (currentIndex != null) {
       var materi = dataMateri[currentIndex.materiIndex];
       String materiName = materi['namaMateri'] as String;
-      
-      if (lastQuizAttemptTime!.containsKey(materiName)) {
-        DateTime lastAttempt = lastQuizAttemptTime![materiName]!;
-        Duration timeDifference = DateTime.now().difference(lastAttempt);
-        int remainingSeconds = (15 * 60) - timeDifference.inSeconds; // 15 minutes in seconds
-        
-        if (remainingSeconds > 0) {
-          _remainingCooldownTime = remainingSeconds;
-          _isQuizAvailable = false;
-          startCountdown();
-        } else {
-          _isQuizAvailable = true;
+
+      bool isInCooldown = await CooldownService.isInCooldown(materiName);
+      if (isInCooldown) {
+        DateTime? cooldownEndTime = await CooldownService.loadCooldown(materiName);
+        if (cooldownEndTime != null) {
+          Duration timeUntilEnd = cooldownEndTime.difference(DateTime.now());
+          int remainingSeconds = timeUntilEnd.inSeconds;
+
+          if (remainingSeconds > 0) {
+            _remainingCooldownTime = remainingSeconds;
+            _isQuizAvailable = false;
+            startCountdown();
+          } else {
+            _isQuizAvailable = true;
+          }
         }
       } else {
         _isQuizAvailable = true;
@@ -714,8 +714,10 @@ class _MateriScreenState extends State<MateriScreen> {
     });
   }
   
-  void recordQuizAttempt(String materiName) {
-    lastQuizAttemptTime![materiName] = DateTime.now();
+  Future<void> recordQuizAttempt(String materiName) async {
+    DateTime cooldownEndTime = DateTime.now().add(Duration(minutes: 15)); // 15 minutes from now
+    await CooldownService.saveCooldown(materiName, cooldownEndTime);
+    
     _isQuizAvailable = false;
     _remainingCooldownTime = 15 * 60; // 15 minutes in seconds
     startCountdown();
@@ -725,7 +727,7 @@ class _MateriScreenState extends State<MateriScreen> {
   void dispose() {
     _countdownTimer?.cancel();
     // Save progress before disposing
-    _saveProgress();
+    _saveProgress(); // Not awaited as dispose is synchronous
     super.dispose();
   }
 
@@ -736,7 +738,7 @@ class _MateriScreenState extends State<MateriScreen> {
   }
 
   // Show the modal for ujian confirmation
-  void showUjianModal() {
+  void showUjianModal() async {
     // Check if quiz is available
     var currentIndex = findSubMateriIndex(currentContent);
     String? materiName = '';
@@ -744,39 +746,42 @@ class _MateriScreenState extends State<MateriScreen> {
       materiName = dataMateri[currentIndex.materiIndex]['namaMateri'] as String?;
     }
 
-    if (!_isQuizAvailable && materiName != null && lastQuizAttemptTime!.containsKey(materiName)) {
-      // Show a message that the quiz is still on cooldown
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text(
-              'Kuis dalam cooldown',
-              style: TextStyle(
-                fontFamily: 'StackSansText',
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
+    if (!_isQuizAvailable && materiName != null) {
+      bool isInCooldown = await CooldownService.isInCooldown(materiName);
+      if (isInCooldown) {
+        // Show a message that the quiz is still on cooldown
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text(
+                'Kuis dalam cooldown',
+                style: TextStyle(
+                  fontFamily: 'StackSansText',
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
-            ),
-            content: Text(
-              'Anda harus menunggu sebelum mengambil kuis ini lagi. Tersisa: ${formatCountdownTime(_remainingCooldownTime)}',
-              style: const TextStyle(
-                fontFamily: 'StackSansText',
-                fontSize: 14,
+              content: Text(
+                'Anda harus menunggu sebelum mengambil kuis ini lagi. Tersisa: ${formatCountdownTime(_remainingCooldownTime)}',
+                style: const TextStyle(
+                  fontFamily: 'StackSansText',
+                  fontSize: 14,
+                ),
               ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () {
-                  Navigator.of(context).pop(); // Close the modal
-                },
-                child: const Text('OK'),
-              ),
-            ],
-          );
-        },
-      );
-      return; // Exit the function without showing the confirmation modal
+              actions: [
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop(); // Close the modal
+                  },
+                  child: const Text('OK'),
+                ),
+              ],
+            );
+          },
+        );
+        return; // Exit the function without showing the confirmation modal
+      }
     }
 
     showDialog(
@@ -838,9 +843,7 @@ class _MateriScreenState extends State<MateriScreen> {
                   const SizedBox(width: 8),
                   ElevatedButton(
                     onPressed: () {
-                      Navigator.of(context).pop(); // Close the modal
-                      // Navigate to the latihan soal screen with the current materi's complete soal data
-                      // First, find the current materi name
+                      // Record the quiz attempt to start the cooldown
                       var currentIndex = findSubMateriIndex(currentContent);
                       if (currentIndex != null) {
                         var materi = dataMateri[currentIndex.materiIndex];
@@ -850,19 +853,21 @@ class _MateriScreenState extends State<MateriScreen> {
                           List<Map<String, dynamic>> typedSoalList = 
                               soalList.cast<Map<String, dynamic>>();
                           
-                          // Record the quiz attempt to start the cooldown
-                          recordQuizAttempt(materi['namaMateri'] as String);
-                          
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) =>
-                                  LatihanSoalScreen(
-                                    soalList: typedSoalList,
-                                    materiName: materi['namaMateri'] as String?,
-                                  ),
-                            ),
-                          );
+                          // Record the quiz attempt to start the cooldown and handle navigation after
+                          recordQuizAttempt(materi['namaMateri'] as String).then((_) {
+                            if (mounted) {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) =>
+                                      LatihanSoalScreen(
+                                        soalList: typedSoalList,
+                                        materiName: materi['namaMateri'] as String?,
+                                      ),
+                                ),
+                              );
+                            }
+                          });
                         }
                       }
                     },
