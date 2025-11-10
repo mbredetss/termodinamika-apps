@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../materi/materi_screen.dart';
 import '../materi/component/materi_data.dart';
-import '../../services/progress_service.dart';
+import '../../services/storage_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -30,20 +30,22 @@ class HomeScreen extends StatelessWidget {
             ElevatedButton(
               onPressed: () async {
                 // Load saved progress before determining which content to navigate to
-                List<Map<String, dynamic>>? savedData = await ProgressService.loadProgress();
-                if (savedData != null) {
+                List<Map<String, dynamic>>? savedData = await StorageService.loadProgress();
+                if (savedData != null && savedData.isNotEmpty) {
                   // Update the global dataMateri with saved progress
-                  for (int i = 0; i < dataMateri.length; i++) {
-                    if (i < savedData.length) {
-                      var savedMateri = savedData[i];
+                  for (int i = 0; i < dataMateri.length && i < savedData.length; i++) {
+                    var savedMateri = savedData[i];
+                    if (savedMateri.containsKey('isDoneMateri')) {
                       dataMateri[i]['isDoneMateri'] = savedMateri['isDoneMateri'] ?? false;
-                      
-                      var savedSubMateriList = savedMateri['subMateri'] as List;
-                      var currentSubMateriList = dataMateri[i]['subMateri'] as List;
-                      
-                      for (int j = 0; j < currentSubMateriList.length; j++) {
-                        if (j < savedSubMateriList.length) {
-                          var savedSubMateri = savedSubMateriList[j] as Map<String, dynamic>;
+                    }
+                    
+                    var savedSubMateriList = savedMateri['subMateri'] as List?;
+                    var currentSubMateriList = dataMateri[i]['subMateri'] as List?;
+                    
+                    if (savedSubMateriList != null && currentSubMateriList != null) {
+                      for (int j = 0; j < currentSubMateriList.length && j < savedSubMateriList.length; j++) {
+                        var savedSubMateri = savedSubMateriList[j] as Map<String, dynamic>?;
+                        if (savedSubMateri != null && savedSubMateri.containsKey('isDone')) {
                           currentSubMateriList[j]['isDone'] = savedSubMateri['isDone'] ?? false;
                         }
                       }
