@@ -5,6 +5,9 @@ import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import '../home/home_screen.dart';
 import 'component/module_list_screen.dart';
 import 'component/materi_data.dart';
+import 'component/warning_modal.dart';
+import 'component/countdown_display.dart';
+import 'component/start_quiz_button.dart';
 import '../latihan_soal/latihan_soal_screen.dart';
 
 class MateriScreen extends StatefulWidget {
@@ -493,45 +496,15 @@ class _MateriScreenState extends State<MateriScreen> {
             ),
             // Show the cooldown message if this is the last subMateri and the quiz is on cooldown
             if (isLastSubMateri() && !_isQuizAvailable)
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: Text(
-                  'Silahkan tunggu untuk mengambil soal latihan ulang: ${formatCountdownTime(_remainingCooldownTime)}',
-                  style: const TextStyle(
-                    fontFamily: 'StackSansText',
-                    fontSize: 14,
-                    color: Colors.blue, // Blue text as requested
-                  ),
-                ),
+              CountdownDisplay(
+                remainingCooldownTime: _remainingCooldownTime,
               ),
             // Show the "Mulai" button if this is the last subMateri in the current materi and quiz is available
             if (isLastSubMateri() && _isQuizAvailable)
-              Padding(
-                padding: const EdgeInsets.only(top: 16.0),
-                child: ElevatedButton(
-                  onPressed: () {
-                    showUjianModal();
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.black,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 32,
-                      vertical: 12,
-                    ),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                  child: const Text(
-                    'Mulai',
-                    style: TextStyle(
-                      fontFamily: 'StackSansText',
-                      fontSize: 16,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
+              StartQuizButton(
+                onPressed: () {
+                  showUjianModal();
+                },
               ),
           ],
         ),
@@ -615,35 +588,12 @@ class _MateriScreenState extends State<MateriScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-            'Warning',
-            style: TextStyle(
-              fontFamily: 'StackSansText',
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.red,
-            ),
-          ),
-          content: const Text(
-            'Maaf, Anda belum bisa membuka modul ini. Mohon pastikan semua modul sebelumnya (termasuk submission) sudah diselesaikan.',
-            style: TextStyle(fontFamily: 'StackSansText', fontSize: 16),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the modal
-              },
-              child: const Text(
-                'OK',
-                style: TextStyle(
-                  fontFamily: 'StackSansText',
-                  fontSize: 16,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-          ],
+        return WarningModal(
+          title: 'Warning',
+          content: 'Maaf, Anda belum bisa membuka modul ini. Mohon pastikan semua modul sebelumnya (termasuk submission) sudah diselesaikan.',
+          onButtonPressed: () {
+            Navigator.of(context).pop(); // Close the modal
+          },
         );
       },
     );
@@ -654,35 +604,12 @@ class _MateriScreenState extends State<MateriScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-            'Warning',
-            style: TextStyle(
-              fontFamily: 'StackSansText',
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.red,
-            ),
-          ),
-          content: const Text(
-            'Anda hanya dapat berpindah ke submateri lain dalam materi yang sama. Mohon selesaikan materi saat ini terlebih dahulu.',
-            style: TextStyle(fontFamily: 'StackSansText', fontSize: 16),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the modal
-              },
-              child: const Text(
-                'OK',
-                style: TextStyle(
-                  fontFamily: 'StackSansText',
-                  fontSize: 16,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-          ],
+        return WarningModal(
+          title: 'Warning',
+          content: 'Anda hanya dapat berpindah ke submateri lain dalam materi yang sama. Mohon selesaikan materi saat ini terlebih dahulu.',
+          onButtonPressed: () {
+            Navigator.of(context).pop(); // Close the modal
+          },
         );
       },
     );
@@ -693,35 +620,12 @@ class _MateriScreenState extends State<MateriScreen> {
     showDialog(
       context: context,
       builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text(
-            'Warning',
-            style: TextStyle(
-              fontFamily: 'StackSansText',
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.red,
-            ),
-          ),
-          content: const Text(
-            'Maaf, Anda belum bisa membuka modul ini. Mohon pastikan semua modul sebelumnya (termasuk latihan soal) sudah diselesaikan.',
-            style: TextStyle(fontFamily: 'StackSansText', fontSize: 16),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop(); // Close the modal
-              },
-              child: const Text(
-                'OK',
-                style: TextStyle(
-                  fontFamily: 'StackSansText',
-                  fontSize: 16,
-                  color: Colors.black,
-                ),
-              ),
-            ),
-          ],
+        return WarningModal(
+          title: 'Warning',
+          content: 'Maaf, Anda belum bisa membuka modul ini. Mohon pastikan semua modul sebelumnya (termasuk latihan soal) sudah diselesaikan.',
+          onButtonPressed: () {
+            Navigator.of(context).pop(); // Close the modal
+          },
         );
       },
     );
