@@ -94,10 +94,12 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
       var currentSoal = widget.soalList[currentQuestionIndex];
       
       // Call the prompting function
-      Map<String, dynamic> result = {
-        'correctAnswer': false, 
-        'explain': 'Jawaban Anda Benar Sekali!'
-      };
+      Map<String, dynamic> result = await prompting(
+        apiKey: 'AIzaSyAu8KLDdPzccOqSzZjRC6OyopIe7pSuGtk',
+        question: isiSoal,
+        kunciJawaban: currentSoal['kunciJawaban'] ?? '',
+        jawabanSiswa: jawabanSiswa,
+      );
 
       bool isCorrect = result['correctAnswer'] ?? false;
       String explain = result['explain'] ?? '';
