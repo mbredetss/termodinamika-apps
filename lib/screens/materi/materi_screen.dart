@@ -789,24 +789,6 @@ class _MateriScreenState extends State<MateriScreen> {
       }
     }
 
-    // Check if the current quiz has already been completed for this materi
-    if (currentIndex != null) {
-      var currentMateri = dataMateri[currentIndex.materiIndex];
-      var subMateriList = currentMateri['subMateri'] as List;
-      
-      // Find the quiz subMateri and check if it's already done
-      for (var subMateri in subMateriList) {
-        String subMateriName = subMateri['nama'] as String;
-        if ((subMateriName.toLowerCase().contains('latihan soal') ||
-            subMateriName.toLowerCase().contains('ujian')) &&
-            subMateri['isDone'] == true) {
-          // If the quiz is already completed, navigate directly to the next content
-          goToNextSubMateri();
-          return; // Exit without showing the modal
-        }
-      }
-    }
-
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -866,6 +848,7 @@ class _MateriScreenState extends State<MateriScreen> {
                   const SizedBox(width: 8),
                   ElevatedButton(
                     onPressed: () {
+                      Navigator.of(context).pop(); // Close the modal
                       // Record the quiz attempt to start the cooldown
                       var currentIndex = findSubMateriIndex(currentContent);
                       if (currentIndex != null) {
