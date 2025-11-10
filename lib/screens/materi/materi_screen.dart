@@ -33,6 +33,10 @@ class _MateriScreenState extends State<MateriScreen> {
   @override
   void initState() {
     super.initState();
+    
+    // Load saved progress from SharedPreferences
+    _loadSavedProgress();
+    
     // Set the initial content from props if provided
     currentContent = widget.initialContent;
     // Find the subMateri name based on the initial content
@@ -78,6 +82,30 @@ class _MateriScreenState extends State<MateriScreen> {
     }
 
     return null;
+  }
+
+  // Load saved progress from SharedPreferences
+  Future<void> _loadSavedProgress() async {
+    List<Map<String, dynamic>>? savedData = await ProgressService.loadProgress();
+    if (savedData != null) {
+      // Update the global dataMateri with saved progress
+      for (int i = 0; i < dataMateri.length; i++) {
+        if (i < savedData.length) {
+          var savedMateri = savedData[i];
+          dataMateri[i]['isDoneMateri'] = savedMateri['isDoneMateri'] ?? false;
+          
+          var savedSubMateriList = savedMateri['subMateri'] as List;
+          var currentSubMateriList = dataMateri[i]['subMateri'] as List;
+          
+          for (int j = 0; j < currentSubMateriList.length; j++) {
+            if (j < savedSubMateriList.length) {
+              var savedSubMateri = savedSubMateriList[j] as Map<String, dynamic>;
+              currentSubMateriList[j]['isDone'] = savedSubMateri['isDone'] ?? false;
+            }
+          }
+        }
+      }
+    }
   }
 
   // Navigate to the previous subMateri
@@ -694,6 +722,8 @@ class _MateriScreenState extends State<MateriScreen> {
   @override
   void dispose() {
     _countdownTimer?.cancel();
+    // Save progress before disposing
+    _saveProgress();
     super.dispose();
   }
 
