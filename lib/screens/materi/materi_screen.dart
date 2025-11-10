@@ -193,42 +193,47 @@ class _MateriScreenState extends State<MateriScreen> {
       String lastSubMateriName = lastSubMateri['nama'] as String;
       
       // If it's the last subMateri and its name contains "Latihan Soal" or "ujian", 
-      // check if the materi is completed before allowing to move on
+      // check if the quiz has been completed before allowing to move on
       if (lastSubMateriName.toLowerCase().contains('latihan soal') || 
           lastSubMateriName.toLowerCase().contains('ujian')) {
         
-        // Show error message that user needs to complete the quiz first
-        showDialog(
-          context: context,
-          builder: (BuildContext context) {
-            return AlertDialog(
-              title: const Text(
-                'Peringatan',
-                style: TextStyle(
-                  fontFamily: 'StackSansText',
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
+        bool isQuizCompleted = lastSubMateri['isDone'] == true;
+        
+        // If quiz is not completed, show warning and don't allow navigation
+        if (!isQuizCompleted) {
+          // Show error message that user needs to complete the quiz first
+          showDialog(
+            context: context,
+            builder: (BuildContext context) {
+              return AlertDialog(
+                title: const Text(
+                  'Peringatan',
+                  style: TextStyle(
+                    fontFamily: 'StackSansText',
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              content: const Text(
-                'Kerjakan Latihan Soal terlebih dahulu sebelum Anda bisa lanjut ke materi berikutnya!',
-                style: TextStyle(
-                  fontFamily: 'StackSansText',
-                  fontSize: 14,
+                content: const Text(
+                  'Kerjakan Latihan Soal terlebih dahulu sebelum Anda bisa lanjut ke materi berikutnya!',
+                  style: TextStyle(
+                    fontFamily: 'StackSansText',
+                    fontSize: 14,
+                  ),
                 ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Close the modal
-                  },
-                  child: const Text('OK'),
-                ),
-              ],
-            );
-          },
-        );
-        return; // Don't proceed with navigation
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Close the modal
+                    },
+                    child: const Text('OK'),
+                  ),
+                ],
+              );
+            },
+          );
+          return; // Don't proceed with navigation
+        }
       }
     }
 
@@ -781,6 +786,24 @@ class _MateriScreenState extends State<MateriScreen> {
           },
         );
         return; // Exit the function without showing the confirmation modal
+      }
+    }
+
+    // Check if the current quiz has already been completed for this materi
+    if (currentIndex != null) {
+      var currentMateri = dataMateri[currentIndex.materiIndex];
+      var subMateriList = currentMateri['subMateri'] as List;
+      
+      // Find the quiz subMateri and check if it's already done
+      for (var subMateri in subMateriList) {
+        String subMateriName = subMateri['nama'] as String;
+        if ((subMateriName.toLowerCase().contains('latihan soal') ||
+            subMateriName.toLowerCase().contains('ujian')) &&
+            subMateri['isDone'] == true) {
+          // If the quiz is already completed, navigate directly to the next content
+          goToNextSubMateri();
+          return; // Exit without showing the modal
+        }
       }
     }
 

@@ -87,8 +87,6 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
     });
 
     try {
-      // Load the .env file
-
       var currentSoal = widget.soalList[currentQuestionIndex];
       
       // Call the prompting function
@@ -173,11 +171,27 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
     double scorePercentage = (correctAnswers / widget.soalList.length) * 100;
     bool isPassed = scorePercentage >= 80; // 80% or more is passing
 
-    // If the quiz was passed, update the materi's isDoneMateri to true
+    // If the quiz was passed, update the materi's isDoneMateri to true and quiz subMateri's isDone status
     if (isPassed && widget.materiName != null) {
       for (var materi in dataMateri) {
         if (materi['namaMateri'] == widget.materiName) {
+          // Update the materi's completion status
           materi['isDoneMateri'] = true;
+          
+          // Find and update the quiz subMateri's isDone status
+          var subMateriList = materi['subMateri'] as List;
+          for (int i = 0; i < subMateriList.length; i++) {
+            var subMateri = subMateriList[i];
+            String subMateriName = subMateri['nama'] as String;
+            
+            // Update isDone status for the quiz/latihan soal subMateri
+            if (subMateriName.toLowerCase().contains('latihan soal') ||
+                subMateriName.toLowerCase().contains('ujian')) {
+              subMateriList[i]['isDone'] = true;
+              break; // Exit after updating the quiz subMateri
+            }
+          }
+          
           break;
         }
       }
