@@ -7,7 +7,7 @@ import 'component/question_display.dart';
 import 'component/submit_button.dart';
 import 'component/time_display.dart';
 import '../materi/component/materi_data.dart';
-import '../../services/progress_service.dart';
+import '../../services/storage_service.dart';
 
 class LatihanSoalScreen extends StatefulWidget {
   final List<Map<String, dynamic>> soalList;
@@ -178,7 +178,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
       }
       
       // Save the updated progress
-      ProgressService.saveProgress(dataMateri);
+      StorageService.saveProgress(dataMateri);
     }
 
     showDialog(
