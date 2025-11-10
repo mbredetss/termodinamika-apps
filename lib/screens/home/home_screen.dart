@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../materi/materi_screen.dart';
 import '../materi/component/materi_data.dart';
+import '../../services/progress_service.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -27,7 +28,29 @@ class HomeScreen extends StatelessWidget {
             ),
             const SizedBox(height: 32),
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
+                // Load saved progress before determining which content to navigate to
+                List<Map<String, dynamic>>? savedData = await ProgressService.loadProgress();
+                if (savedData != null) {
+                  // Update the global dataMateri with saved progress
+                  for (int i = 0; i < dataMateri.length; i++) {
+                    if (i < savedData.length) {
+                      var savedMateri = savedData[i];
+                      dataMateri[i]['isDoneMateri'] = savedMateri['isDoneMateri'] ?? false;
+                      
+                      var savedSubMateriList = savedMateri['subMateri'] as List;
+                      var currentSubMateriList = dataMateri[i]['subMateri'] as List;
+                      
+                      for (int j = 0; j < currentSubMateriList.length; j++) {
+                        if (j < savedSubMateriList.length) {
+                          var savedSubMateri = savedSubMateriList[j] as Map<String, dynamic>;
+                          currentSubMateriList[j]['isDone'] = savedSubMateri['isDone'] ?? false;
+                        }
+                      }
+                    }
+                  }
+                }
+
                 // Find the first incomplete subMateri that is accessible
                 String? firstAccessibleContent;
                 String? firstAccessibleTitle;
