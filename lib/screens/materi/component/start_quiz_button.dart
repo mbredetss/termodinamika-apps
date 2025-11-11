@@ -4,9 +4,9 @@ class StartQuizButton extends StatelessWidget {
   final VoidCallback onPressed;
 
   const StartQuizButton({
-    Key? key,
+    super.key,
     required this.onPressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

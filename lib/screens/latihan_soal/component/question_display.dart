@@ -7,12 +7,12 @@ class QuestionDisplay extends StatelessWidget {
   final TextEditingController? controller;
 
   const QuestionDisplay({
-    Key? key,
+    super.key,
     required this.questionText,
     required this.answerText,
     required this.onAnswerChanged,
     this.controller,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

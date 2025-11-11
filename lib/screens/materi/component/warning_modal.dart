@@ -7,12 +7,12 @@ class WarningModal extends StatelessWidget {
   final VoidCallback onButtonPressed;
 
   const WarningModal({
-    Key? key,
+    super.key,
     required this.title,
     required this.content,
     this.buttonText = 'OK',
     required this.onButtonPressed,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

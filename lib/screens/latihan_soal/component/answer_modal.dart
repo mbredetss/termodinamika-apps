@@ -6,11 +6,11 @@ class AnswerModal extends StatelessWidget {
   final VoidCallback onContinue;
 
   const AnswerModal({
-    Key? key,
+    super.key,
     required this.isCorrect,
     required this.explanation,
     required this.onContinue,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

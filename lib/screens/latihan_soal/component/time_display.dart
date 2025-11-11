@@ -5,10 +5,10 @@ class TimeDisplay extends StatelessWidget {
   final VoidCallback onTimeOver;
 
   const TimeDisplay({
-    Key? key,
+    super.key,
     required this.timeInSeconds,
     required this.onTimeOver,
-  }) : super(key: key);
+  });
 
   String formatTime(int seconds) {
     int minutes = seconds ~/ 60;

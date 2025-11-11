@@ -6,11 +6,11 @@ class FinalResultModal extends StatelessWidget {
   final VoidCallback onFinished;
 
   const FinalResultModal({
-    Key? key,
+    super.key,
     required this.correctAnswers,
     required this.totalQuestions,
     required this.onFinished,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

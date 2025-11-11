@@ -4,9 +4,9 @@ class CountdownDisplay extends StatelessWidget {
   final int remainingCooldownTime;
 
   const CountdownDisplay({
-    Key? key,
+    super.key,
     required this.remainingCooldownTime,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
