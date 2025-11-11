@@ -1,5 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:web/web.dart' as web;
 import '../../utils/prompting.dart';
 import 'component/answer_modal.dart';
 import 'component/final_result_modal.dart';
@@ -234,58 +236,96 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back,
-            color: Color(0xFF555555), // Dark gray
-          ),
-          onPressed: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        title: Text(
-          'Soal ${currentQuestionIndex + 1}/${widget.soalList.length} • $soalKategori',
-          style: const TextStyle(
-            fontFamily: 'StackSansText',
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-            color: Colors.black87,
-          ),
-        ),
-        centerTitle: true,
-        actions: [
-          TimeDisplay(
-            timeInSeconds: waktuDetik,
-            onTimeOver: () {}, // This is handled in the timer logic
-          ),
-          const SizedBox(width: 16.0),
-        ],
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            // Soal essay
-            QuestionDisplay(
-              questionText: isiSoal,
-              answerText: _answerController.text,
-              onAnswerChanged: (value) {
-                setState(() {
-                  jawabanSiswa = value;
-                });
-              },
-              controller: _answerController,
+    return PopScope(
+      canPop: false, // Prevent default back button behavior
+      onPopInvokedWithResult: (bool didPop, Object? result) async {
+        if (didPop) {
+          return; // If the default behavior already popped the route, return
+        }
+
+        // Show exit confirmation dialog
+        bool shouldExit = await showExitDialog(context);
+
+        if (shouldExit) {
+          // For web, show browser alert
+          if (kIsWeb) {
+            web.window.alert(
+              'Apakah Anda yakin keluar dari latihan soal? Anda tidak bisa mengerjakan soal latihan lagi selama 15 menit',
+            );
+          }
+          Navigator.of(context).pop(); // Actually pop the route when confirmed
+        }
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: Text(
+            'Soal ${currentQuestionIndex + 1}/${widget.soalList.length} • $soalKategori',
+            style: const TextStyle(
+              fontFamily: 'StackSansText',
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.black87,
             ),
-            const SizedBox(height: 16),
-            // Submit button
-            SubmitButton(onSubmit: kirimJawaban, isLoading: isLoading),
+          ),
+          centerTitle: true,
+          actions: [
+            TimeDisplay(
+              timeInSeconds: waktuDetik,
+              onTimeOver: () {
+                debugPrint('IM DONE');
+              }, // This is handled in the timer logic
+            ),
+            const SizedBox(width: 16.0),
           ],
+        ),
+        body: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              // Soal essay
+              QuestionDisplay(
+                questionText: isiSoal,
+                answerText: _answerController.text,
+                onAnswerChanged: (value) {
+                  setState(() {
+                    jawabanSiswa = value;
+                  });
+                },
+                controller: _answerController,
+              ),
+              const SizedBox(height: 16),
+              // Submit button
+              SubmitButton(onSubmit: kirimJawaban, isLoading: isLoading),
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  // Helper method to show exit confirmation dialog
+  Future<bool> showExitDialog(BuildContext context) async {
+    return await showDialog(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: const Text('Konfirmasi Keluar'),
+            content: const Text(
+              'Apakah Anda yakin keluar dari latihan soal? Anda tidak bisa mengerjakan soal latihan lagi selama 15 menit',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false), // Don't exit
+                child: const Text('Batal'),
+              ),
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(true), // Exit
+                child: const Text('Keluar'),
+              ),
+            ],
+          ),
+        ) ??
+        false; // Return false if dialog is dismissed
   }
 }
