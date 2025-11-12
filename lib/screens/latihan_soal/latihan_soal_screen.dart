@@ -1,16 +1,17 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../services/prompting.dart';
-import 'component/answer_modal.dart';
-import 'component/confirmation_modal.dart';
-import 'component/final_result_modal.dart';
+import 'package:termodinamika_apps/services/storage_service.dart';
 import 'component/question_display.dart';
 import 'component/submit_button.dart';
 import 'component/time_display.dart';
-import 'service/answer_validation_service.dart';
+import 'services/quiz_progress_service.dart';
+import 'services/timer_service.dart';
+import 'services/api_service.dart';
+import 'services/quiz_completion_service.dart';
+import 'component/quiz_confirmation_handler.dart';
+import 'component/answer_feedback_handler.dart';
+import 'component/final_result_handler.dart';
 import '../materi/component/materi_data.dart';
-import '../../services/storage_service.dart';
-import '../../services/cooldown_service.dart';
 
 class LatihanSoalScreen extends StatefulWidget {
   final List<Map<String, dynamic>> soalList;
@@ -28,7 +29,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
   late int waktuDetik;
   late String isiSoal;
   late String jawabanSiswa = '';
-  late Timer? timer;
+  TimerService timerService = TimerService();
   bool isLoading = false;
   int incorrectAttempts = 0; // Track incorrect attempts
   int currentQuestionIndex = 0;
@@ -103,87 +104,53 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
 
   // Save current quiz progress
   void _saveProgress() async {
-    if (widget.materiName != null) {
-      Map<String, dynamic> quizProgress = {
-        'currentQuestionIndex': currentQuestionIndex,
-        'timeRemaining': waktuDetik,
-        'jawabanSiswa': jawabanSiswa,
-        'correctAnswers': correctAnswers,
-        'incorrectAttempts': incorrectAttempts,
-        '_expectedEndTime': DateTime.now().add(Duration(seconds: waktuDetik)).toIso8601String(),
-      };
-      
-      await StorageService.saveQuizProgress(widget.materiName!, quizProgress);
-    }
+    await QuizProgressService.saveQuizProgress(
+      materiName: widget.materiName ?? '',
+      currentQuestionIndex: currentQuestionIndex,
+      timeRemaining: waktuDetik,
+      jawabanSiswa: jawabanSiswa,
+      correctAnswers: correctAnswers,
+      incorrectAttempts: incorrectAttempts,
+    );
   }
 
   void startTimer() {
-    timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (waktuDetik > 0) {
+    timerService.startTimer(
+      initialTime: waktuDetik,
+      onTick: (remainingTime) {
         setState(() {
-          waktuDetik--;
+          waktuDetik = remainingTime;
         });
         // Save progress every second to ensure accurate time tracking
         _saveProgress();
-      } else {
+      },
+      onTimeOver: () {
         // Timer ended, handle timeout by automatically submitting with "Siswa tidak menjawab apapun"
-        timer.cancel();
         jawabanSiswa = 'Siswa tidak menjawab apapun';
         _answerController.text = jawabanSiswa; // Update controller as well
-        kirimJawaban();
-      }
-    });
-  }
-
-  @override
-  void dispose() {
-    timer?.cancel();
-    _answerController.dispose();
-    super.dispose();
-  }
-
-  String formatWaktu(int detik) {
-    int menit = detik ~/ 60;
-    int sisaDetik = detik % 60;
-    return '${menit.toString().padLeft(2, '0')}:${sisaDetik.toString().padLeft(2, '0')}';
-  }
-
-  void _showConfirmationModal() {
-    // Check if the answer field is empty
-    if (!AnswerValidationService.isAnswerValid(_answerController.text)) {
-      // Show warning message in a snackbar
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(AnswerValidationService.getEmptyAnswerErrorMessage()),
-          backgroundColor: Colors.red,
-          behavior: SnackBarBehavior.floating,
-        ),
-      );
-      return;
-    }
-
-    // Show confirmation modal
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return ConfirmationModal(
-          title: 'Konfirmasi',
-          content: 'Apakah Anda yakin mengirim jawaban?',
-          onConfirm: () {
-            Navigator.of(context).pop(); // Close the confirmation modal
-            kirimJawaban();
-          },
-          onCancel: () {
-            Navigator.of(context).pop(); // Close the confirmation modal
-          },
-        );
+        _submitAnswer();
       },
     );
   }
 
-  void kirimJawaban() async {
+  @override
+  void dispose() {
+    timerService.cancelTimer();
+    _answerController.dispose();
+    super.dispose();
+  }
+
+  void _showConfirmationModal() {
+    QuizConfirmationHandler.showConfirmationModal(
+      context: context,
+      answerText: _answerController.text,
+      onConfirm: _submitAnswer,
+    );
+  }
+
+  void _submitAnswer() async {
     // Stop the timer when submitting an answer
-    timer?.cancel();
+    timerService.cancelTimer();
 
     setState(() {
       isLoading = true;
@@ -192,12 +159,12 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
     try {
       var currentSoal = widget.soalList[currentQuestionIndex];
 
-      // Call the prompting function
-      Map<String, dynamic> result = await prompting(
+      // Call the API service
+      Map<String, dynamic> result = await ApiService.submitAnswer(
         apiKey: 'AIzaSyAu8KLDdPzccOqSzZjRC6OyopIe7pSuGtk',
         question: isiSoal,
-        kunciJawaban: currentSoal['kunciJawaban'] ?? '',
-        jawabanSiswa: jawabanSiswa,
+        answerKey: currentSoal['kunciJawaban'] ?? '',
+        studentAnswer: jawabanSiswa,
       );
 
       bool isCorrect = result['correctAnswer'] ?? false;
@@ -219,7 +186,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
       _saveProgress();
 
       // Show result modal
-      showCorrectAnswerModal(explain, isCorrect);
+      _showAnswerFeedbackModal(explain, isCorrect);
     } catch (e) {
       // Handle error
       debugPrint('Error: ${e.toString()}');
@@ -235,108 +202,59 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
     }
   }
 
-  void showCorrectAnswerModal(String explanation, bool isCorrect) {
-    showDialog(
+  void _showAnswerFeedbackModal(String explanation, bool isCorrect) {
+    AnswerFeedbackHandler.showAnswerFeedbackModal(
       context: context,
-      barrierDismissible: false, // Prevent dismissing by clicking outside
-      builder: (BuildContext context) {
-        return AnswerModal(
-          isCorrect: isCorrect,
-          explanation: explanation,
-          onContinue: () {
-            Navigator.of(context).pop(); // Close modal
+      isCorrect: isCorrect,
+      explanation: explanation,
+      onContinue: () {
+        // Move to next question or finish quiz
+        if (currentQuestionIndex < widget.soalList.length - 1) {
+          // Move to next question
+          setState(() {
+            currentQuestionIndex++;
+            var nextSoal = widget.soalList[currentQuestionIndex];
+            isiSoal = nextSoal['isiSoal'] ?? '';
+            jawabanSiswa = '';
 
-            // Move to next question or finish quiz
-            if (currentQuestionIndex < widget.soalList.length - 1) {
-              // Move to next question
-              setState(() {
-                currentQuestionIndex++;
-                var nextSoal = widget.soalList[currentQuestionIndex];
-                isiSoal = nextSoal['isiSoal'] ?? '';
-                jawabanSiswa = '';
+            // Reset timer for the new question
+            int batasWaktu = nextSoal['batasWaktuPengerjaan'] ?? 180;
+            waktuDetik = batasWaktu;
+          });
 
-                // Reset timer for the new question
-                int batasWaktu = nextSoal['batasWaktuPengerjaan'] ?? 180;
-                waktuDetik = batasWaktu;
-              });
+          // Clear the answer text field for the next question
+          _answerController.clear();
 
-              // Clear the answer text field for the next question
-              _answerController.clear();
+          // Save progress for the new question
+          _saveProgress();
 
-              // Save progress for the new question
-              _saveProgress();
-
-              // Restart the timer for the next question
-              startTimer();
-            } else {
-              // All questions answered, show final results
-              showFinalResult();
-            }
-          },
-        );
+          // Restart the timer for the next question
+          startTimer();
+        } else {
+          // All questions answered, show final results
+          _showFinalResult();
+        }
       },
     );
   }
 
-  void showFinalResult() {
-    // Record the quiz attempt to start the 15-minute cooldown (always done when finishing the quiz)
-    if (widget.materiName != null) {
-      DateTime cooldownEndTime = DateTime.now().add(
-        Duration(minutes: 15),
-      ); // 15 minutes from now
-      CooldownService.saveCooldown(widget.materiName!, cooldownEndTime);
-    }
-
-    double scorePercentage = (correctAnswers / widget.soalList.length) * 100;
-    bool isPassed = scorePercentage >= 80; // 80% or more is passing
-
-    // If the quiz was passed, update the materi's isDoneMateri to true and quiz subMateri's isDone status
-    if (isPassed && widget.materiName != null) {
-      for (var materi in dataMateri) {
-        if (materi['namaMateri'] == widget.materiName) {
-          // Update the materi's completion status
-          materi['isDoneMateri'] = true;
-
-          // Find and update the quiz subMateri's isDone status
-          var subMateriList = materi['subMateri'] as List;
-          for (int i = 0; i < subMateriList.length; i++) {
-            var subMateri = subMateriList[i];
-            String subMateriName = subMateri['nama'] as String;
-
-            // Update isDone status for the quiz/latihan soal subMateri
-            if (subMateriName.toLowerCase().contains('latihan soal') ||
-                subMateriName.toLowerCase().contains('ujian')) {
-              subMateriList[i]['isDone'] = true;
-              break; // Exit after updating the quiz subMateri
-            }
-          }
-
-          break;
-        }
-      }
-
-      // Save the updated progress
-      StorageService.saveProgress(dataMateri);
-    }
-
-    // Clear the saved quiz progress as the quiz is completed
-    if (widget.materiName != null) {
-      StorageService.clearQuizProgressForMateri(widget.materiName!);
-    }
-
-    showDialog(
+  void _showFinalResult() {
+    QuizCompletionService.handleQuizCompletion(
+      materiName: widget.materiName,
+      correctAnswers: correctAnswers,
+      totalQuestions: widget.soalList.length,
+      materiList: dataMateri,
+      recordQuizAttempt: (materiName) => widget.recordQuizAttempt!(materiName),
       context: context,
-      barrierDismissible: false, // Prevent dismissing by clicking outside
-      builder: (BuildContext context) {
-        return FinalResultModal(
-          correctAnswers: correctAnswers,
-          totalQuestions: widget.soalList.length,
-          onFinished: () {
-            widget.recordQuizAttempt!(widget.materiName!);
-            Navigator.of(context).pop(); // Close modal
-            Navigator.of(context).pop(); // Return to previous screen
-          },
-        );
+    );
+
+    FinalResultHandler.showFinalResultModal(
+      context: context,
+      correctAnswers: correctAnswers,
+      totalQuestions: widget.soalList.length,
+      onFinished: () {
+        Navigator.of(context).pop(); // Close modal
+        Navigator.of(context).pop(); // Return to previous screen
       },
     );
   }

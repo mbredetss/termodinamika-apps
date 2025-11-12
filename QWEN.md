@@ -6,6 +6,7 @@ di menu materi ini adalah sebuah learning path. Terdapat beberapa materi, sepert
 
 NOTE: 
 - TIdak usah menjalankan perintah 'flutter run' di akhir saat kamu telah selesai menulis code, karena projek ini telah berjalan dalam mode debuggin (f5).
-- Design tampilan dengan tampilan yang konsisten (kecuali warna) sesuai dengan pengalamanmu sebagai Android frontend & UI UX expert berpengalaman selama 20tahun.
+- Design tampilan dengan tampilan yang konsisten (kecuali warna) sesuai dengan pengalamanmu sebagai mobile/web frontend & UI UX expert berpengalaman selama 20tahun.
+- Gunakan UI Library: Get Widget dalam mendesign aplikasi
 - Jika Anda membuat Widget, letakkan codenya di folder /component dari root main module.
 - Jika ada fungsi yang ingin Anda buat, letakkan di folder /service (buat kalau tidak ada) dari root main module.
