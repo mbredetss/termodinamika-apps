@@ -29,6 +29,8 @@ class _MateriScreenState extends State<MateriScreen> {
   Timer? _countdownTimer;
   int _remainingCooldownTime = 0; // In seconds
   bool _isQuizAvailable = true;
+  // Key to force rebuild of Markdown widget when content changes
+  Key? _markdownKey;
 
   @override
   void initState() {
@@ -43,6 +45,8 @@ class _MateriScreenState extends State<MateriScreen> {
     currentSubMateriName = findSubMateriName(currentContent);
     // Initialize bottom app bar title
     bottomAppBarTitle = widget.bottomAppBarTitle ?? 'Prasyarat Kemampuan';
+    // Initialize the key for the Markdown widget
+    _markdownKey = Key('${currentContent.hashCode}');
 
     // Check if there's a cooldown for the current materi
     checkQuizAvailability();
@@ -56,6 +60,8 @@ class _MateriScreenState extends State<MateriScreen> {
       currentContent = widget.initialContent;
       currentSubMateriName = findSubMateriName(currentContent);
       bottomAppBarTitle = widget.bottomAppBarTitle ?? 'Prasyarat Kemampuan';
+      // Change the key to force rebuild of Markdown widget and reset scroll
+      _markdownKey = Key('${currentContent.hashCode}');
       checkQuizAvailability();
     }
   }
@@ -146,6 +152,8 @@ class _MateriScreenState extends State<MateriScreen> {
         currentContent = prevSubMateri['isiMateri'] as String;
         currentSubMateriName = prevSubMateri['nama'] as String;
         bottomAppBarTitle = currentSubMateriName;
+        // Change the key to force rebuild of Markdown widget and reset scroll
+        _markdownKey = Key('${currentContent.hashCode}');
       });
       // Save progress after updating isDone status
       _saveProgress();
@@ -177,6 +185,8 @@ class _MateriScreenState extends State<MateriScreen> {
             currentContent = lastSubMateri['isiMateri'] as String;
             currentSubMateriName = lastSubMateri['nama'] as String;
             bottomAppBarTitle = currentSubMateriName;
+            // Change the key to force rebuild of Markdown widget and reset scroll
+            _markdownKey = Key('${currentContent.hashCode}');
           });
           // Check quiz availability for the new content
           checkQuizAvailability();
@@ -270,6 +280,8 @@ class _MateriScreenState extends State<MateriScreen> {
         currentContent = nextSubMateri['isiMateri'] as String;
         currentSubMateriName = nextSubMateri['nama'] as String;
         bottomAppBarTitle = currentSubMateriName;
+        // Change the key to force rebuild of Markdown widget and reset scroll
+        _markdownKey = Key('${currentContent.hashCode}');
       });
       // Save progress after updating isDone status
       _saveProgress();
@@ -304,6 +316,8 @@ class _MateriScreenState extends State<MateriScreen> {
                 currentContent = firstSubMateri['isiMateri'] as String;
                 currentSubMateriName = firstSubMateri['nama'] as String;
                 bottomAppBarTitle = currentSubMateriName;
+                // Change the key to force rebuild of Markdown widget and reset scroll
+                _markdownKey = Key('${currentContent.hashCode}');
               });
               // Check quiz availability for the new content
               checkQuizAvailability();
@@ -407,6 +421,7 @@ class _MateriScreenState extends State<MateriScreen> {
           children: [
             Expanded(
               child: Markdown(
+                key: _markdownKey,
                 data: currentContent ?? '',
                 selectable: true,
                 styleSheet: MarkdownStyleSheet(
