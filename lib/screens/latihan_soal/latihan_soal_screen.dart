@@ -1,11 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../../utils/prompting.dart';
+import '../../services/prompting.dart';
 import 'component/answer_modal.dart';
+import 'component/confirmation_modal.dart';
 import 'component/final_result_modal.dart';
 import 'component/question_display.dart';
 import 'component/submit_button.dart';
 import 'component/time_display.dart';
+import 'service/answer_validation_service.dart';
 import '../materi/component/materi_data.dart';
 import '../../services/storage_service.dart';
 import '../../services/cooldown_service.dart';
@@ -15,7 +17,12 @@ class LatihanSoalScreen extends StatefulWidget {
   final String? materiName;
   final Future<void> Function(String materiName)? recordQuizAttempt;
 
-  const LatihanSoalScreen({super.key, required this.soalList, this.materiName, this.recordQuizAttempt});
+  const LatihanSoalScreen({
+    super.key,
+    required this.soalList,
+    this.materiName,
+    this.recordQuizAttempt,
+  });
 
   @override
   State<LatihanSoalScreen> createState() => _LatihanSoalScreenState();
@@ -62,17 +69,20 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
   // Load saved quiz progress
   void _loadSavedProgress() async {
     if (widget.materiName != null) {
-      Map<String, dynamic>? savedProgress = await StorageService.loadQuizProgress(widget.materiName!);
+      Map<String, dynamic>? savedProgress =
+          await StorageService.loadQuizProgress(widget.materiName!);
       if (savedProgress != null) {
-        DateTime? expectedEndTime = savedProgress['_expectedEndTime'] != null 
-            ? DateTime.parse(savedProgress['_expectedEndTime']) 
+        DateTime? expectedEndTime = savedProgress['_expectedEndTime'] != null
+            ? DateTime.parse(savedProgress['_expectedEndTime'])
             : null;
-        
+
         setState(() {
-          currentQuestionIndex = savedProgress['currentQuestionIndex'] ?? currentQuestionIndex;
+          currentQuestionIndex =
+              savedProgress['currentQuestionIndex'] ?? currentQuestionIndex;
           jawabanSiswa = savedProgress['jawabanSiswa'] ?? jawabanSiswa;
           correctAnswers = savedProgress['correctAnswers'] ?? correctAnswers;
-          incorrectAttempts = savedProgress['incorrectAttempts'] ?? incorrectAttempts;
+          incorrectAttempts =
+              savedProgress['incorrectAttempts'] ?? incorrectAttempts;
         });
 
         // Calculate remaining time based on expected end time
@@ -81,7 +91,8 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
           waktuDetik = timeUntilEnd.inSeconds;
           // Ensure time doesn't go negative
           if (waktuDetik < 0) {
-            waktuDetik = 0; // Time has already passed, will trigger timeout immediately
+            waktuDetik =
+                0; // Time has already passed, will trigger timeout immediately
           }
         } else {
           // Fallback to the saved time remaining if expected end time is not available
@@ -89,10 +100,14 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
         }
 
         // Update the current question data
-        if (widget.soalList.isNotEmpty && currentQuestionIndex < widget.soalList.length) {
+        if (widget.soalList.isNotEmpty &&
+            currentQuestionIndex < widget.soalList.length) {
           var currentSoal = widget.soalList[currentQuestionIndex];
           isiSoal = currentSoal['isiSoal'] ?? '';
-          soalKategori = currentSoal['soalKategori'] ?? widget.materiName ?? 'Latihan Soal';
+          soalKategori =
+              currentSoal['soalKategori'] ??
+              widget.materiName ??
+              'Latihan Soal';
           _answerController.text = jawabanSiswa;
         }
       }
@@ -108,9 +123,11 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
         'jawabanSiswa': jawabanSiswa,
         'correctAnswers': correctAnswers,
         'incorrectAttempts': incorrectAttempts,
-        '_expectedEndTime': DateTime.now().add(Duration(seconds: waktuDetik)).toIso8601String(),
+        '_expectedEndTime': DateTime.now()
+            .add(Duration(seconds: waktuDetik))
+            .toIso8601String(),
       };
-      
+
       await StorageService.saveQuizProgress(widget.materiName!, quizProgress);
     }
   }
@@ -146,6 +163,39 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
     return '${menit.toString().padLeft(2, '0')}:${sisaDetik.toString().padLeft(2, '0')}';
   }
 
+  void _showConfirmationModal() {
+    // Check if the answer field is empty
+    if (!AnswerValidationService.isAnswerValid(_answerController.text)) {
+      // Show warning message in a snackbar
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AnswerValidationService.getEmptyAnswerErrorMessage()),
+          backgroundColor: Colors.red,
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+      return;
+    }
+
+    // Show confirmation modal
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return ConfirmationModal(
+          title: 'Konfirmasi',
+          content: 'Apakah Anda yakin mengirim jawaban?',
+          onConfirm: () {
+            Navigator.of(context).pop(); // Close the confirmation modal
+            kirimJawaban();
+          },
+          onCancel: () {
+            Navigator.of(context).pop(); // Close the confirmation modal
+          },
+        );
+      },
+    );
+  }
+
   void kirimJawaban() async {
     // Stop the timer when submitting an answer
     timer?.cancel();
@@ -158,12 +208,10 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
       var currentSoal = widget.soalList[currentQuestionIndex];
 
       // Call the prompting function
-      Map<String, dynamic> result = await prompting(
-        apiKey: 'AIzaSyAu8KLDdPzccOqSzZjRC6OyopIe7pSuGtk',
-        question: isiSoal,
-        kunciJawaban: currentSoal['kunciJawaban'] ?? '',
-        jawabanSiswa: jawabanSiswa,
-      );
+      Map<String, dynamic> result = {
+        'correctAnswer': true, 
+        'explain': 'anjay!', 
+      };
 
       bool isCorrect = result['correctAnswer'] ?? false;
       String explain = result['explain'] ?? '';
@@ -358,7 +406,10 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
               ),
               const SizedBox(height: 16),
               // Submit button
-              SubmitButton(onSubmit: kirimJawaban, isLoading: isLoading),
+              SubmitButton(
+                onSubmit: _showConfirmationModal,
+                isLoading: isLoading,
+              ),
             ],
           ),
         ),
