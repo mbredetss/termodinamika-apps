@@ -365,31 +365,4 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
       ),
     );
   }
-
-  // Helper method to show exit confirmation dialog
-  Future<bool> showExitDialog(BuildContext context) async {
-    return await showDialog(
-          context: context,
-          builder: (context) => AlertDialog(
-            title: const Text('Konfirmasi Keluar'),
-            content: const Text(
-              'Apakah Anda yakin keluar dari latihan soal? Anda tidak bisa mengerjakan soal latihan lagi selama 15 menit',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(context).pop(false), // Don't exit
-                child: const Text('Batal'),
-              ),
-              TextButton(
-                onPressed: () => {
-                  widget.recordQuizAttempt!(widget.materiName!), 
-                  Navigator.of(context).pop(true)
-                }, // Exit
-                child: const Text('Keluar'),
-              ),
-            ],
-          ),
-        ) ??
-        false; // Return false if dialog is dismissed
-  }
 }
