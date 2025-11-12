@@ -17,3 +17,5 @@ jobs:
           firebaseServiceAccount: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_TERMODINAMIKA_E1263 }}
           channelId: live
           projectId: termodinamika-e1263
+        env:
+          FIREBASE_CLI_EXPERIMENTS: webframeworks
