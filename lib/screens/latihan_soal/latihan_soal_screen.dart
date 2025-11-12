@@ -15,8 +15,9 @@ import '../../services/cooldown_service.dart';
 class LatihanSoalScreen extends StatefulWidget {
   final List<Map<String, dynamic>> soalList;
   final String? materiName;
+  final Future<void> Function(String materiName)? recordQuizAttempt;
 
-  const LatihanSoalScreen({super.key, required this.soalList, this.materiName});
+  const LatihanSoalScreen({super.key, required this.soalList, this.materiName, this.recordQuizAttempt});
 
   @override
   State<LatihanSoalScreen> createState() => _LatihanSoalScreenState();
@@ -226,6 +227,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
           correctAnswers: correctAnswers,
           totalQuestions: widget.soalList.length,
           onFinished: () {
+            widget.recordQuizAttempt!(widget.materiName!);
             Navigator.of(context).pop(); // Close modal
             Navigator.of(context).pop(); // Return to previous screen
           },

@@ -48,6 +48,18 @@ class _MateriScreenState extends State<MateriScreen> {
     checkQuizAvailability();
   }
 
+  @override
+  void didUpdateWidget(MateriScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Check if the content has changed, if so, re-check quiz availability
+    if (oldWidget.initialContent != widget.initialContent) {
+      currentContent = widget.initialContent;
+      currentSubMateriName = findSubMateriName(currentContent);
+      bottomAppBarTitle = widget.bottomAppBarTitle ?? 'Prasyarat Kemampuan';
+      checkQuizAvailability();
+    }
+  }
+
   // Helper method to find subMateri name based on content
   String? findSubMateriName(String? content) {
     if (content == null) return null;
@@ -137,6 +149,8 @@ class _MateriScreenState extends State<MateriScreen> {
       });
       // Save progress after updating isDone status
       _saveProgress();
+      // Check quiz availability for the new content
+      checkQuizAvailability();
     }
     // If at the first subMateri of this materi, go to the last subMateri of the previous materi
     else if (currentMateriIndex > 0) {
@@ -164,6 +178,8 @@ class _MateriScreenState extends State<MateriScreen> {
             currentSubMateriName = lastSubMateri['nama'] as String;
             bottomAppBarTitle = currentSubMateriName;
           });
+          // Check quiz availability for the new content
+          checkQuizAvailability();
           break;
         }
         prevMateriIndex--;
@@ -257,6 +273,8 @@ class _MateriScreenState extends State<MateriScreen> {
       });
       // Save progress after updating isDone status
       _saveProgress();
+      // Check quiz availability for the new content
+      checkQuizAvailability();
     }
     // If at the last subMateri of this materi, check if we can go to the next materi
     else if (currentMateriIndex < dataMateri.length - 1) {
@@ -287,6 +305,8 @@ class _MateriScreenState extends State<MateriScreen> {
                 currentSubMateriName = firstSubMateri['nama'] as String;
                 bottomAppBarTitle = currentSubMateriName;
               });
+              // Check quiz availability for the new content
+              checkQuizAvailability();
               break;
             }
           } else {
@@ -613,6 +633,8 @@ class _MateriScreenState extends State<MateriScreen> {
     return currentSubMateriIndex == currentSubMateriList.length - 1;
   }
 
+
+
   // Check if the specified materi is completed (all subMateri done)
   bool isMateriCompleted(int materiIndex) {
     if (materiIndex < 0 || materiIndex >= dataMateri.length) return false;
@@ -691,15 +713,25 @@ class _MateriScreenState extends State<MateriScreen> {
           int remainingSeconds = timeUntilEnd.inSeconds;
 
           if (remainingSeconds > 0) {
+            // Cancel any existing countdown timer before starting a new one
+            _countdownTimer?.cancel();
             _remainingCooldownTime = remainingSeconds;
-            _isQuizAvailable = false;
+            setState(() {
+              _isQuizAvailable = false; // Explicitly mark quiz as unavailable
+            });
             startCountdown();
           } else {
-            _isQuizAvailable = true;
+            // Cooldown has ended
+            setState(() {
+              _isQuizAvailable = true;
+            });
           }
         }
       } else {
-        _isQuizAvailable = true;
+        // No cooldown for this material
+        setState(() {
+          _isQuizAvailable = true;
+        });
       }
     }
   }
@@ -712,6 +744,7 @@ class _MateriScreenState extends State<MateriScreen> {
         });
       } else {
         _countdownTimer?.cancel();
+        // When countdown is complete, the quiz will be available again
         setState(() {
           _isQuizAvailable = true;
         });
@@ -723,7 +756,9 @@ class _MateriScreenState extends State<MateriScreen> {
     DateTime cooldownEndTime = DateTime.now().add(Duration(minutes: 15)); // 15 minutes from now
     await CooldownService.saveCooldown(materiName, cooldownEndTime);
     
-    _isQuizAvailable = false;
+    setState(() {
+      _isQuizAvailable = false;
+    });
     _remainingCooldownTime = 15 * 60; // 15 minutes in seconds
     startCountdown();
   }
@@ -751,7 +786,7 @@ class _MateriScreenState extends State<MateriScreen> {
       materiName = dataMateri[currentIndex.materiIndex]['namaMateri'] as String?;
     }
 
-    if (!_isQuizAvailable && materiName != null) {
+    if (materiName != null) {
       bool isInCooldown = await CooldownService.isInCooldown(materiName);
       if (isInCooldown) {
         // Show a message that the quiz is still on cooldown
@@ -849,7 +884,7 @@ class _MateriScreenState extends State<MateriScreen> {
                   ElevatedButton(
                     onPressed: () {
                       Navigator.of(context).pop(); // Close the modal
-                      // Record the quiz attempt to start the cooldown
+                      // Navigate to the quiz screen without recording the attempt here
                       var currentIndex = findSubMateriIndex(currentContent);
                       if (currentIndex != null) {
                         var materi = dataMateri[currentIndex.materiIndex];
@@ -858,22 +893,20 @@ class _MateriScreenState extends State<MateriScreen> {
                           // Convert the list to a list of Map<String, dynamic>
                           List<Map<String, dynamic>> typedSoalList = 
                               soalList.cast<Map<String, dynamic>>();
-                          
-                          // Record the quiz attempt to start the cooldown and handle navigation after
-                          recordQuizAttempt(materi['namaMateri'] as String).then((_) {
-                            if (mounted) {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) =>
-                                      LatihanSoalScreen(
-                                        soalList: typedSoalList,
-                                        materiName: materi['namaMateri'] as String?,
-                                      ),
-                                ),
-                              );
-                            }
-                          });
+
+                          if (mounted) {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    LatihanSoalScreen(
+                                      soalList: typedSoalList,
+                                      materiName: materi['namaMateri'] as String?,
+                                      recordQuizAttempt: recordQuizAttempt,
+                                    ),
+                              ),
+                            );
+                          }
                         }
                       }
                     },
