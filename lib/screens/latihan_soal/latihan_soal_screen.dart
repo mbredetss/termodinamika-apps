@@ -53,7 +53,66 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
       isiSoal = 'Tidak ada soal tersedia';
     }
 
+    // Load saved progress if available
+    _loadSavedProgress();
+
     startTimer();
+  }
+
+  // Load saved quiz progress
+  void _loadSavedProgress() async {
+    if (widget.materiName != null) {
+      Map<String, dynamic>? savedProgress = await StorageService.loadQuizProgress(widget.materiName!);
+      if (savedProgress != null) {
+        DateTime? expectedEndTime = savedProgress['_expectedEndTime'] != null 
+            ? DateTime.parse(savedProgress['_expectedEndTime']) 
+            : null;
+        
+        setState(() {
+          currentQuestionIndex = savedProgress['currentQuestionIndex'] ?? currentQuestionIndex;
+          jawabanSiswa = savedProgress['jawabanSiswa'] ?? jawabanSiswa;
+          correctAnswers = savedProgress['correctAnswers'] ?? correctAnswers;
+          incorrectAttempts = savedProgress['incorrectAttempts'] ?? incorrectAttempts;
+        });
+
+        // Calculate remaining time based on expected end time
+        if (expectedEndTime != null) {
+          Duration timeUntilEnd = expectedEndTime.difference(DateTime.now());
+          waktuDetik = timeUntilEnd.inSeconds;
+          // Ensure time doesn't go negative
+          if (waktuDetik < 0) {
+            waktuDetik = 0; // Time has already passed, will trigger timeout immediately
+          }
+        } else {
+          // Fallback to the saved time remaining if expected end time is not available
+          waktuDetik = savedProgress['timeRemaining'] ?? waktuDetik;
+        }
+
+        // Update the current question data
+        if (widget.soalList.isNotEmpty && currentQuestionIndex < widget.soalList.length) {
+          var currentSoal = widget.soalList[currentQuestionIndex];
+          isiSoal = currentSoal['isiSoal'] ?? '';
+          soalKategori = currentSoal['soalKategori'] ?? widget.materiName ?? 'Latihan Soal';
+          _answerController.text = jawabanSiswa;
+        }
+      }
+    }
+  }
+
+  // Save current quiz progress
+  void _saveProgress() async {
+    if (widget.materiName != null) {
+      Map<String, dynamic> quizProgress = {
+        'currentQuestionIndex': currentQuestionIndex,
+        'timeRemaining': waktuDetik,
+        'jawabanSiswa': jawabanSiswa,
+        'correctAnswers': correctAnswers,
+        'incorrectAttempts': incorrectAttempts,
+        '_expectedEndTime': DateTime.now().add(Duration(seconds: waktuDetik)).toIso8601String(),
+      };
+      
+      await StorageService.saveQuizProgress(widget.materiName!, quizProgress);
+    }
   }
 
   void startTimer() {
@@ -62,6 +121,8 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
         setState(() {
           waktuDetik--;
         });
+        // Save progress every second to ensure accurate time tracking
+        _saveProgress();
       } else {
         // Timer ended, handle timeout by automatically submitting with "Siswa tidak menjawab apapun"
         timer.cancel();
@@ -119,6 +180,9 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
         });
       }
 
+      // Save progress after submitting an answer
+      _saveProgress();
+
       // Show result modal
       showCorrectAnswerModal(explain, isCorrect);
     } catch (e) {
@@ -163,6 +227,9 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
 
               // Clear the answer text field for the next question
               _answerController.clear();
+
+              // Save progress for the new question
+              _saveProgress();
 
               // Restart the timer for the next question
               startTimer();
@@ -215,6 +282,11 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
 
       // Save the updated progress
       StorageService.saveProgress(dataMateri);
+    }
+
+    // Clear the saved quiz progress as the quiz is completed
+    if (widget.materiName != null) {
+      StorageService.clearQuizProgressForMateri(widget.materiName!);
     }
 
     showDialog(

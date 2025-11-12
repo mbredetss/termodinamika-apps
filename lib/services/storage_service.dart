@@ -6,6 +6,7 @@ import 'package:web/web.dart' as web;
 // This is a wrapper for platform-specific storage
 class StorageService {
   static const String _progressKey = 'learning_progress';
+  static const String _quizProgressKey = 'quiz_progress';
 
   // Save the entire dataMateri structure
   static Future<void> saveProgress(List<Map<String, dynamic>> dataMateri) async {
@@ -96,6 +97,111 @@ class StorageService {
     } else {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_progressKey);
+    }
+  }
+
+  // Save quiz progress data for a specific materi
+  static Future<void> saveQuizProgress(String materiName, Map<String, dynamic> quizProgress) async {
+    Map<String, dynamic> allQuizProgress = await loadAllQuizProgress() ?? {};
+    allQuizProgress[materiName] = quizProgress;
+    
+    if (kIsWeb) {
+      _saveQuizProgressToLocalStorage(allQuizProgress);
+    } else {
+      await _saveQuizProgressToSharedPreferences(allQuizProgress);
+    }
+  }
+
+  // Load quiz progress data for a specific materi
+  static Future<Map<String, dynamic>?> loadQuizProgress(String materiName) async {
+    Map<String, dynamic>? allQuizProgress = await loadAllQuizProgress();
+    
+    if (allQuizProgress != null && allQuizProgress.containsKey(materiName)) {
+      return allQuizProgress[materiName] as Map<String, dynamic>?;
+    }
+    
+    return null;
+  }
+
+  // Load all quiz progress data
+  static Future<Map<String, dynamic>?> loadAllQuizProgress() async {
+    if (kIsWeb) {
+      return _loadQuizProgressFromLocalStorage();
+    } else {
+      return await _loadQuizProgressFromSharedPreferences();
+    }
+  }
+
+  // Save quiz progress to localStorage for web
+  static void _saveQuizProgressToLocalStorage(Map<String, dynamic> allQuizProgress) {
+    String jsonString = jsonEncode(allQuizProgress);
+    web.window.localStorage.setItem(_quizProgressKey, jsonString);
+  }
+
+  // Load quiz progress from localStorage for web
+  static Map<String, dynamic>? _loadQuizProgressFromLocalStorage() {
+    String? jsonString = web.window.localStorage.getItem(_quizProgressKey);
+
+    if (jsonString != null && jsonString.isNotEmpty) {
+      try {
+        Map<String, dynamic> decodedMap = jsonDecode(jsonString);
+        return decodedMap;
+      } catch (e) {
+        // If there's an error parsing the JSON, return null
+        return null;
+      }
+    }
+
+    return null;
+  }
+
+  // Save quiz progress to SharedPreferences for mobile
+  static Future<void> _saveQuizProgressToSharedPreferences(Map<String, dynamic> allQuizProgress) async {
+    final prefs = await SharedPreferences.getInstance();
+    String jsonString = jsonEncode(allQuizProgress);
+    await prefs.setString(_quizProgressKey, jsonString);
+  }
+
+  // Load quiz progress from SharedPreferences for mobile
+  static Future<Map<String, dynamic>?> _loadQuizProgressFromSharedPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    String? jsonString = prefs.getString(_quizProgressKey);
+
+    if (jsonString != null) {
+      try {
+        Map<String, dynamic> decodedMap = jsonDecode(jsonString);
+        return decodedMap;
+      } catch (e) {
+        // If there's an error parsing the JSON, return null
+        return null;
+      }
+    }
+
+    return null;
+  }
+
+  // Clear quiz progress
+  static Future<void> clearQuizProgress() async {
+    if (kIsWeb) {
+      web.window.localStorage.removeItem(_quizProgressKey);
+    } else {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove(_quizProgressKey);
+    }
+  }
+  
+  // Clear quiz progress for a specific materi
+  static Future<void> clearQuizProgressForMateri(String materiName) async {
+    Map<String, dynamic>? allQuizProgress = await loadAllQuizProgress();
+    
+    if (allQuizProgress != null && allQuizProgress.containsKey(materiName)) {
+      allQuizProgress.remove(materiName);
+      
+      if (kIsWeb) {
+        _saveQuizProgressToLocalStorage(allQuizProgress);
+      } else {
+        await _saveQuizProgressToSharedPreferences(allQuizProgress);
+      }
     }
   }
 }
