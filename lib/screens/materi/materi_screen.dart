@@ -31,6 +31,7 @@ class _MateriScreenState extends State<MateriScreen> {
   bool _isQuizAvailable = true;
   // Key to force rebuild of Markdown widget when content changes
   Key? _markdownKey;
+  String _activeSearchKeyword = ''; // Track active search keyword for highlighting
 
   @override
   void initState() {
@@ -60,6 +61,8 @@ class _MateriScreenState extends State<MateriScreen> {
       currentContent = widget.initialContent;
       currentSubMateriName = findSubMateriName(currentContent);
       bottomAppBarTitle = widget.bottomAppBarTitle ?? 'Prasyarat Kemampuan';
+      // Remove the active search keyword when widget is updated (manual navigation)
+      _activeSearchKeyword = '';
       // Change the key to force rebuild of Markdown widget and reset scroll
       _markdownKey = Key('${currentContent.hashCode}');
       checkQuizAvailability();
@@ -152,6 +155,8 @@ class _MateriScreenState extends State<MateriScreen> {
         currentContent = prevSubMateri['isiMateri'] as String;
         currentSubMateriName = prevSubMateri['nama'] as String;
         bottomAppBarTitle = currentSubMateriName;
+        // Remove the active search keyword when navigating manually
+        _activeSearchKeyword = '';
         // Change the key to force rebuild of Markdown widget and reset scroll
         _markdownKey = Key('${currentContent.hashCode}');
       });
@@ -185,6 +190,8 @@ class _MateriScreenState extends State<MateriScreen> {
             currentContent = lastSubMateri['isiMateri'] as String;
             currentSubMateriName = lastSubMateri['nama'] as String;
             bottomAppBarTitle = currentSubMateriName;
+            // Remove the active search keyword when navigating manually
+            _activeSearchKeyword = '';
             // Change the key to force rebuild of Markdown widget and reset scroll
             _markdownKey = Key('${currentContent.hashCode}');
           });
@@ -280,6 +287,8 @@ class _MateriScreenState extends State<MateriScreen> {
         currentContent = nextSubMateri['isiMateri'] as String;
         currentSubMateriName = nextSubMateri['nama'] as String;
         bottomAppBarTitle = currentSubMateriName;
+        // Remove the active search keyword when navigating manually
+        _activeSearchKeyword = '';
         // Change the key to force rebuild of Markdown widget and reset scroll
         _markdownKey = Key('${currentContent.hashCode}');
       });
@@ -316,6 +325,8 @@ class _MateriScreenState extends State<MateriScreen> {
                 currentContent = firstSubMateri['isiMateri'] as String;
                 currentSubMateriName = firstSubMateri['nama'] as String;
                 bottomAppBarTitle = currentSubMateriName;
+                // Remove the active search keyword when navigating manually
+                _activeSearchKeyword = '';
                 // Change the key to force rebuild of Markdown widget and reset scroll
                 _markdownKey = Key('${currentContent.hashCode}');
               });
@@ -363,7 +374,7 @@ class _MateriScreenState extends State<MateriScreen> {
               color: Colors.grey, // Medium gray
             ),
             onPressed: () {
-              // Implement search functionality
+              _showSearchOverlay();
             },
           ),
           IconButton(
@@ -420,160 +431,18 @@ class _MateriScreenState extends State<MateriScreen> {
         child: Column(
           children: [
             Expanded(
-              child: Markdown(
-                key: _markdownKey,
-                data: currentContent ?? '',
-                selectable: true,
-                styleSheet: MarkdownStyleSheet(
-                  h1: const TextStyle(
-                    fontFamily: 'StackSansText',
-                    fontSize: 30,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.deepPurple,
-                  ),
-                  h2: const TextStyle(
-                    fontFamily: 'StackSansText',
-                    fontSize: 26,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.purple,
-                  ),
-                  p: const TextStyle(
-                    fontFamily: 'StackSansText',
-                    fontSize: 20,
-                    height: 1.6,
-                  ),
-                  listBullet: const TextStyle(
-                    fontFamily: 'StackSansText',
-                    fontSize: 20,
-                  ),
-                  code: const TextStyle(
-                    fontFamily: 'monospace',
-                    fontSize: 18,
-                    backgroundColor: Colors.grey,
-                    color: Colors.white,
-                  ),
-                ),
-                imageBuilder: (Uri uri, String? title, String? altText) {
-                  // Check if the URI is a relative path that should point to assets
-                  if (uri.path.contains('Aspose.Words')) {
-                    // Map the image names to actual asset paths
-                    String assetPath =
-                        'assets/images/${uri.path.split('/').last}';
-                    return Container(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 5.0,
-                        vertical: 5.0,
+              child: currentContent != null && currentContent!.isNotEmpty
+                  ? _buildContentWithHighlights(currentContent!)
+                  : const Center(
+                      child: Text(
+                        'Tidak ada konten untuk ditampilkan',
+                        style: TextStyle(
+                          fontFamily: 'StackSansText',
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
                       ),
-                      child: Column(
-                        children: [
-                          Center(
-                            child: Image.asset(
-                              assetPath,
-                              fit: BoxFit.contain,
-                              errorBuilder: (context, error, stackTrace) {
-                                return Container(
-                                  width: double.infinity,
-                                  height: 200,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey[300],
-                                    borderRadius: BorderRadius.circular(8.0),
-                                  ),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      const Icon(
-                                        Icons.image_not_supported,
-                                        size: 60,
-                                        color: Colors.grey,
-                                      ),
-                                      const SizedBox(height: 8),
-                                      Text(
-                                        'Image: ${uri.path.split('/').last}',
-                                        style: const TextStyle(
-                                          fontFamily: 'StackSansText',
-                                          fontSize: 14,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      Text(
-                                        '(Place image in assets/images/)',
-                                        style: const TextStyle(
-                                          fontFamily: 'StackSansText',
-                                          fontSize: 12,
-                                          fontStyle: FontStyle.italic,
-                                        ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                          if (altText != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(
-                                altText,
-                                style: const TextStyle(
-                                  fontFamily: 'StackSansText',
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    );
-                  } else {
-                    // For other image URLs, use standard network loading
-                    return Container(
-                      margin: const EdgeInsets.symmetric(
-                        horizontal: 5.0,
-                        vertical: 5.0,
-                      ),
-                      child: Column(
-                        children: [
-                          Center(
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(8.0),
-                              child: Image.network(
-                                uri.toString(),
-                                fit: BoxFit.contain,
-                                errorBuilder: (context, error, stackTrace) {
-                                  return Container(
-                                    width: double.infinity,
-                                    height: 200,
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey[300],
-                                      borderRadius: BorderRadius.circular(8.0),
-                                    ),
-                                    child: const Icon(
-                                      Icons.image_not_supported,
-                                      size: 60,
-                                      color: Colors.grey,
-                                    ),
-                                  );
-                                },
-                              ),
-                            ),
-                          ),
-                          if (altText != null)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 8.0),
-                              child: Text(
-                                altText,
-                                style: const TextStyle(
-                                  fontFamily: 'StackSansText',
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    );
-                  }
-                },
-              ),
+                    ),
             ),
             // Show the cooldown message if this is the last subMateri and the quiz is on cooldown
             if (isLastSubMateri() && !_isQuizAvailable)
@@ -944,5 +813,623 @@ class _MateriScreenState extends State<MateriScreen> {
         );
       },
     );
+  }
+  
+  // Method to show search overlay
+  void _showSearchOverlay() {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SearchOverlay(
+          dataMateri: dataMateri,
+          onResultTap: (result, searchKeyword) {
+            // Find the index of the selected subMateri
+            int? materiIndex, subMateriIndex;
+            
+            for (int i = 0; i < dataMateri.length; i++) {
+              var subMateriList = dataMateri[i]['subMateri'] as List;
+              for (int j = 0; j < subMateriList.length; j++) {
+                if (subMateriList[j]['isiMateri'] == result['isiMateri']) {
+                  materiIndex = i;
+                  subMateriIndex = j;
+                  break;
+                }
+              }
+              if (materiIndex != null && subMateriIndex != null) break;
+            }
+            
+            if (materiIndex != null && subMateriIndex != null) {
+              // Check if the selected subMateri is accessible
+              if (isSubMateriAccessible(materiIndex, subMateriIndex)) {
+                // Navigate back to main screen and update content
+                Navigator.pop(context);
+                setState(() {
+                  currentContent = result['isiMateri'];
+                  currentSubMateriName = result['nama'] as String?;
+                  bottomAppBarTitle = currentSubMateriName;
+                  // Set the active search keyword for highlighting
+                  _activeSearchKeyword = searchKeyword;
+                  _markdownKey = Key('${currentContent.hashCode}');
+                });
+                
+                // Save progress after updating isDone status
+                _saveProgress();
+                
+                // Check quiz availability for the new content
+                checkQuizAvailability();
+              } else {
+                // Show warning that this subMateri is not accessible yet
+                showDialog(
+                  context: context,
+                  builder: (BuildContext context) {
+                    return AlertDialog(
+                      title: const Text(
+                        'Warning',
+                        style: TextStyle(
+                          fontFamily: 'StackSansText',
+                          fontSize: 18,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.red,
+                        ),
+                      ),
+                      content: const Text(
+                        'Maaf, Anda belum bisa membuka modul ini. Mohon pastikan semua modul sebelumnya (termasuk latihan soal) sudah diselesaikan.',
+                        style: TextStyle(fontFamily: 'StackSansText', fontSize: 16),
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop(); // Close the modal
+                          },
+                          child: const Text(
+                            'OK',
+                            style: TextStyle(
+                              fontFamily: 'StackSansText',
+                              fontSize: 16,
+                              color: Colors.black,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              }
+            }
+          },
+        ),
+      ),
+    );
+  }
+  
+  // Check if the subMateri at the given indices is accessible
+  bool isSubMateriAccessible(int materiIndex, int subMateriIndex) {
+    // If it's the first subMateri of the first materi, it's always accessible
+    if (materiIndex == 0 && subMateriIndex == 0) {
+      return true;
+    }
+
+    // Check if it's the first subMateri of a materi
+    if (subMateriIndex == 0) {
+      // It's accessible if the previous materi is completed
+      if (materiIndex > 0) {
+        var previousMateri = dataMateri[materiIndex - 1];
+        return previousMateri['isDoneMateri'] == true;
+      }
+      return false;
+    } else {
+      // It's a subMateri within the same materi, check if the previous subMateri is done
+      var currentMateri = dataMateri[materiIndex];
+      var subMateriList = currentMateri['subMateri'] as List;
+
+      // Check if the previous subMateri is completed
+      var previousSubMateri = subMateriList[subMateriIndex - 1];
+      return previousSubMateri['isDone'] == true;
+    }
+  }
+  
+  // Build content with highlighted search keywords
+  Widget _buildContentWithHighlights(String content) {
+    // If there's no active search keyword, just render the content as Markdown
+    if (_activeSearchKeyword.isEmpty) {
+      return Markdown(
+        key: _markdownKey,
+        data: content,
+        selectable: true,
+        styleSheet: MarkdownStyleSheet(
+          h1: const TextStyle(
+            fontFamily: 'StackSansText',
+            fontSize: 30,
+            fontWeight: FontWeight.bold,
+            color: Colors.deepPurple,
+          ),
+          h2: const TextStyle(
+            fontFamily: 'StackSansText',
+            fontSize: 26,
+            fontWeight: FontWeight.bold,
+            color: Colors.purple,
+          ),
+          p: const TextStyle(
+            fontFamily: 'StackSansText',
+            fontSize: 20,
+            height: 1.6,
+          ),
+          listBullet: const TextStyle(
+            fontFamily: 'StackSansText',
+            fontSize: 20,
+          ),
+          code: const TextStyle(
+            fontFamily: 'monospace',
+            fontSize: 18,
+            backgroundColor: Colors.grey,
+            color: Colors.white,
+          ),
+        ),
+        imageBuilder: (Uri uri, String? title, String? altText) {
+          // Check if the URI is a relative path that should point to assets
+          if (uri.path.contains('Aspose.Words')) {
+            // Map the image names to actual asset paths
+            String assetPath =
+                'assets/images/${uri.path.split('/').last}';
+            return Container(
+              margin: const EdgeInsets.symmetric(
+                horizontal: 5.0,
+                vertical: 5.0,
+              ),
+              child: Column(
+                children: [
+                  Center(
+                    child: Image.asset(
+                      assetPath,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) {
+                        return Container(
+                          width: double.infinity,
+                          height: 200,
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(8.0),
+                          ),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                Icons.image_not_supported,
+                                size: 60,
+                                color: Colors.grey,
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Image: ${uri.path.split('/').last}',
+                                style: const TextStyle(
+                                  fontFamily: 'StackSansText',
+                                  fontSize: 14,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                              Text(
+                                '(Place image in assets/images/)',
+                                style: const TextStyle(
+                                  fontFamily: 'StackSansText',
+                                  fontSize: 12,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                  if (altText != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        altText,
+                        style: const TextStyle(
+                          fontFamily: 'StackSansText',
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          } else {
+            // For other image URLs, use standard network loading
+            return Container(
+              margin: const EdgeInsets.symmetric(
+                horizontal: 5.0,
+                vertical: 5.0,
+              ),
+              child: Column(
+                children: [
+                  Center(
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8.0),
+                      child: Image.network(
+                        uri.toString(),
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            width: double.infinity,
+                            height: 200,
+                            decoration: BoxDecoration(
+                              color: Colors.grey[300],
+                              borderRadius: BorderRadius.circular(8.0),
+                            ),
+                            child: const Icon(
+                              Icons.image_not_supported,
+                              size: 60,
+                              color: Colors.grey,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                  if (altText != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: Text(
+                        altText,
+                        style: const TextStyle(
+                          fontFamily: 'StackSansText',
+                          fontSize: 16,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          }
+        },
+      );
+    }
+
+    // If there's an active search keyword, we need to highlight it in the content
+    // First, we'll convert the markdown content to plain text with highlights
+    return SingleChildScrollView(
+      child: Container(
+        padding: const EdgeInsets.all(8.0),
+        child: SelectableText.rich(
+          TextSpan(
+            style: const TextStyle(
+              fontFamily: 'StackSansText',
+              fontSize: 20,
+              height: 1.6,
+              color: Colors.black87,
+            ),
+            children: _createTextSpans(content, _activeSearchKeyword),
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Create text spans with highlighted keywords
+  List<InlineSpan> _createTextSpans(String content, String keyword) {
+    if (keyword.isEmpty) {
+      return [TextSpan(text: content)];
+    }
+
+    List<InlineSpan> spans = [];
+    String lowerContent = content.toLowerCase();
+    String lowerKeyword = keyword.toLowerCase();
+    int startIndex = 0;
+    int index;
+
+    while ((index = lowerContent.indexOf(lowerKeyword, startIndex)) != -1) {
+      // Add text before the keyword
+      if (index > startIndex) {
+        spans.add(TextSpan(text: content.substring(startIndex, index)));
+      }
+
+      // Add highlighted keyword
+      spans.add(
+        TextSpan(
+          text: content.substring(index, index + keyword.length),
+          style: const TextStyle(
+            backgroundColor: Color.fromARGB(120, 255, 235, 59), // Pale yellow
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      );
+
+      startIndex = index + keyword.length;
+    }
+
+    // Add any remaining text after the last keyword
+    if (startIndex < content.length) {
+      spans.add(TextSpan(text: content.substring(startIndex)));
+    }
+
+    return spans;
+  }
+}
+
+class SearchOverlay extends StatefulWidget {
+  final List<Map<String, dynamic>> dataMateri;
+  final Function(Map<String, dynamic> result, String searchKeyword) onResultTap;
+
+  const SearchOverlay({
+    super.key,
+    required this.dataMateri,
+    required this.onResultTap,
+  });
+
+  @override
+  State<SearchOverlay> createState() => _SearchOverlayState();
+}
+
+class _SearchOverlayState extends State<SearchOverlay> {
+  final TextEditingController _searchController = TextEditingController();
+  Timer? _debounceTimer;
+  List<Map<String, dynamic>> _searchResults = [];
+  String _searchKeyword = '';
+
+  @override
+  void initState() {
+    super.initState();
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchController.removeListener(_onSearchChanged);
+    _searchController.dispose();
+    _debounceTimer?.cancel();
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    if (_debounceTimer?.isActive ?? false) {
+      _debounceTimer?.cancel();
+    }
+    _debounceTimer = Timer(const Duration(milliseconds: 300), () {
+      _performSearch(_searchController.text);
+    });
+  }
+
+  void _performSearch(String keyword) {
+    if (keyword.trim().isEmpty) {
+      setState(() {
+        _searchResults = [];
+        _searchKeyword = '';
+      });
+      return;
+    }
+
+    setState(() {
+      _searchKeyword = keyword.toLowerCase();
+      _searchResults = [];
+
+      for (var materi in widget.dataMateri) {
+        var subMateriList = materi['subMateri'] as List;
+        
+        for (var subMateri in subMateriList) {
+          String isiMateri = subMateri['isiMateri'] as String;
+          String namaSubMateri = subMateri['nama'] as String;
+          
+          // Count occurrences of the keyword in the content
+          int count = _countKeywordOccurrences(isiMateri.toLowerCase(), _searchKeyword);
+          
+          if (count > 0) {
+            _searchResults.add({
+              'materi': materi['namaMateri'],
+              'nama': namaSubMateri,
+              'isiMateri': isiMateri,
+              'count': count,
+            });
+          }
+        }
+      }
+    });
+  }
+
+  int _countKeywordOccurrences(String content, String keyword) {
+    if (keyword.isEmpty) return 0;
+    
+    int count = 0;
+    int index = 0;
+    
+    while (index < content.length) {
+      index = content.indexOf(keyword, index);
+      if (index == -1) {
+        break;
+      }
+      count++;
+      index += keyword.length;
+    }
+    
+    return count;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        elevation: 0,
+        leading: IconButton(
+          icon: const Icon(
+            Icons.arrow_back,
+            color: Color(0xFF555555), // Dark gray
+          ),
+          onPressed: () {
+            Navigator.pop(context);
+          },
+        ),
+        title: TextField(
+          controller: _searchController,
+          decoration: InputDecoration(
+            hintText: 'Cari dalam materi...',
+            hintStyle: const TextStyle(color: Colors.grey),
+            border: InputBorder.none,
+            prefixIcon: const Icon(Icons.search, color: Colors.grey),
+          ),
+          autofocus: true,
+        ),
+      ),
+      body: _searchResults.isEmpty
+          ? (_searchKeyword.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.search,
+                        size: 64,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Masukkan kata kunci untuk pencarian',
+                        style: TextStyle(
+                          fontFamily: 'StackSansText',
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.search_off,
+                        size: 64,
+                        color: Colors.grey[400],
+                      ),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Tidak ditemukan hasil pencarian',
+                        style: TextStyle(
+                          fontFamily: 'StackSansText',
+                          fontSize: 16,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ))
+          : ListView.builder(
+              itemCount: _searchResults.length,
+              itemBuilder: (context, index) {
+                var result = _searchResults[index];
+                return Card(
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: ListTile(
+                    contentPadding: const EdgeInsets.all(16),
+                    title: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.blue[100],
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: Text(
+                            '${result['count']} kecocokan',
+                            style: const TextStyle(
+                              fontFamily: 'StackSansText',
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blue,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Text(
+                            result['nama'],
+                            style: const TextStyle(
+                              fontFamily: 'StackSansText',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    subtitle: Padding(
+                      padding: const EdgeInsets.only(top: 8.0),
+                      child: _buildHighlightedPreview(result['isiMateri'], _searchKeyword),
+                    ),
+                    onTap: () {
+                      widget.onResultTap(result, _searchKeyword);
+                    },
+                  ),
+                );
+              },
+            ),
+    );
+  }
+
+  // Build a preview of the content with the search keyword highlighted
+  Widget _buildHighlightedPreview(String content, String keyword) {
+    if (keyword.isEmpty) return const SizedBox.shrink();
+
+    // Find the first occurrence of the keyword to create a preview
+    int startIndex = content.toLowerCase().indexOf(keyword);
+    
+    // If the keyword exists in the content
+    if (startIndex != -1) {
+      // Get the text before the keyword (up to 50 characters before)
+      int startPreview = (startIndex - 50).clamp(0, content.length);
+      // Get the text after the keyword (up to 100 characters after)
+      int endPreview = (startIndex + keyword.length + 100).clamp(0, content.length);
+      
+      String before = content.substring(startPreview, startIndex);
+      String matched = content.substring(startIndex, startIndex + keyword.length);
+      String after = content.substring(startIndex + keyword.length, endPreview);
+      
+      // Add "..." if the preview is truncated
+      String prefix = startPreview > 0 ? '... ' : '';
+      String suffix = endPreview < content.length ? ' ...' : '';
+      
+      return Container(
+        padding: const EdgeInsets.only(top: 4.0),
+        child: RichText(
+          text: TextSpan(
+            style: TextStyle(
+              fontFamily: 'StackSansText',
+              fontSize: 14,
+              color: Colors.black87,
+            ),
+            children: [
+              TextSpan(
+                text: prefix + before,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black54,
+                ),
+              ),
+              TextSpan(
+                text: matched,
+                style: const TextStyle(
+                  backgroundColor: Color.fromARGB(120, 255, 235, 59), // Pale yellow
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+              TextSpan(
+                text: after + suffix,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.black54,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+    
+    // If keyword is not found, return an empty container
+    return const SizedBox.shrink();
   }
 }
