@@ -314,13 +314,8 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
         if (didPop) {
           return; // If the default behavior already popped the route, return
         }
-
-        // Show exit confirmation dialog
-        bool shouldExit = await showExitDialog(context);
-
-        if (shouldExit) {
-          Navigator.of(context).pop(); // Actually pop the route when confirmed
-        }
+        _loadSavedProgress();
+        Navigator.of(context).pop();
       },
       child: Scaffold(
         appBar: AppBar(
