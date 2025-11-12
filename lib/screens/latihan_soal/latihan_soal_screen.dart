@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart' show kIsWeb;
-import 'package:web/web.dart' as web;
 import '../../utils/prompting.dart';
 import 'component/answer_modal.dart';
 import 'component/final_result_modal.dart';
@@ -249,12 +247,6 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
         bool shouldExit = await showExitDialog(context);
 
         if (shouldExit) {
-          // For web, show browser alert
-          if (kIsWeb) {
-            web.window.alert(
-              'Apakah Anda yakin keluar dari latihan soal? Anda tidak bisa mengerjakan soal latihan lagi selama 15 menit',
-            );
-          }
           Navigator.of(context).pop(); // Actually pop the route when confirmed
         }
       },
@@ -322,7 +314,10 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
                 child: const Text('Batal'),
               ),
               TextButton(
-                onPressed: () => Navigator.of(context).pop(true), // Exit
+                onPressed: () => {
+                  widget.recordQuizAttempt!(widget.materiName!), 
+                  Navigator.of(context).pop(true)
+                }, // Exit
                 child: const Text('Keluar'),
               ),
             ],
