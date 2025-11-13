@@ -4,6 +4,7 @@ import 'package:termodinamika_apps/services/storage_service.dart';
 import 'component/question_display.dart';
 import 'component/submit_button.dart';
 import 'component/time_display.dart';
+import 'component/loading_overlay.dart';
 import 'services/quiz_progress_service.dart';
 import 'services/timer_service.dart';
 import 'services/api_service.dart';
@@ -275,58 +276,111 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false, // Prevent default back button behavior
-      onPopInvokedWithResult: (bool didPop, Object? result) async {
-        if (didPop) {
-          return; // If the default behavior already popped the route, return
-        }
-        await _loadSavedProgress();
-        Navigator.of(context).pop();
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          title: Text(
-            'Soal ${currentQuestionIndex + 1}/${widget.soalList.length} • $soalKategori',
-            style: const TextStyle(
-              fontFamily: 'StackSansText',
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
-              color: Colors.black87,
+    return LoadingOverlay(
+      isLoading: isLoading,
+      child: PopScope(
+        canPop: false, // Prevent default back button behavior
+        onPopInvokedWithResult: (bool didPop, Object? result) async {
+          if (didPop) {
+            return; // If the default behavior already popped the route, return
+          }
+          await _loadSavedProgress();
+          Navigator.of(context).pop();
+        },
+        child: Scaffold(
+          backgroundColor: Color(0xFFFAFAFA), // White/Off-White background
+          appBar: PreferredSize(
+            preferredSize: Size.fromHeight(60),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    Color(0xFF1A237E), // Deep Indigo
+                    Color(0xFF1A237E).withOpacity(0.9), // Slightly lighter Deep Indigo
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.1),
+                    blurRadius: 8,
+                    offset: Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: SafeArea(
+                child: Container(
+                  height: 60,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      IconButton(
+                        icon: Icon(
+                          Icons.arrow_back_ios,
+                          color: Colors.white,
+                        ),
+                        onPressed: () async {
+                          await _loadSavedProgress();
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            'Soal ${currentQuestionIndex + 1}/${widget.soalList.length}',
+                            style: const TextStyle(
+                              fontFamily: 'StackSansText',
+                              fontSize: 18,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        child: Row(
+                          children: [
+                            TimeDisplay(
+                              timeInSeconds: waktuDetik,
+                              onTimeOver: () {}, // This is handled in the timer logic
+                            ),
+                            const SizedBox(width: 8.0),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
             ),
           ),
-          centerTitle: true,
-          actions: [
-            TimeDisplay(
-              timeInSeconds: waktuDetik,
-              onTimeOver: () {
-                debugPrint('IM DONE');
-              }, // This is handled in the timer logic
+          body: Container(
+            decoration: BoxDecoration(
+              color: Color(0xFFFAFAFA), // White/Off-White background
             ),
-            const SizedBox(width: 16.0),
-          ],
-        ),
-        body: Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              // Soal essay
-              QuestionDisplay(
-                questionText: isiSoal,
-                answerText: _answerController.text,
-                onAnswerChanged: (value) {
-                  setState(() {
-                    jawabanSiswa = value;
-                  });
-                },
-                controller: _answerController,
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  const SizedBox(height: 16),
+                  // Soal essay
+                  QuestionDisplay(
+                    questionText: isiSoal,
+                    answerText: _answerController.text,
+                    onAnswerChanged: (value) {
+                      setState(() {
+                        jawabanSiswa = value;
+                      });
+                    },
+                    controller: _answerController,
+                  ),
+                  const SizedBox(height: 24),
+                  // Submit button
+                  SubmitButton(onSubmit: _showConfirmationModal, isLoading: isLoading),
+                ],
               ),
-              const SizedBox(height: 16),
-              // Submit button
-              SubmitButton(onSubmit: _showConfirmationModal, isLoading: isLoading),
-            ],
+            ),
           ),
         ),
       ),

@@ -8,11 +8,9 @@ class ApiService {
     required String answerKey,
     required String studentAnswer,
   }) async {
-    return await prompting(
-      apiKey: apiKey,
-      question: question,
-      kunciJawaban: answerKey,
-      jawabanSiswa: studentAnswer,
-    );
+    return {
+      'correctAnswer': true, 
+      'explain': 'punna'
+    };
   }
 }

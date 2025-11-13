@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:lottie/lottie.dart';
+import 'package:getwidget/getwidget.dart';
 
 class SubmitButton extends StatelessWidget {
   final VoidCallback onSubmit;
@@ -15,22 +17,20 @@ class SubmitButton extends StatelessWidget {
     return SizedBox(
       width: double.infinity,
       height: 48,
-      child: ElevatedButton(
+      child: GFButton(
         onPressed: isLoading ? null : onSubmit,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
+        text: 'Kirim',
+        textStyle: const TextStyle(
+          fontFamily: 'StackSansText',
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: Colors.white,
         ),
-        child: isLoading
-            ? const CircularProgressIndicator(color: Colors.white)
-            : const Text(
-                'Kirim',
-                style: TextStyle(
-                  fontFamily: 'StackSansText',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+        color: isLoading ? Colors.grey : Color(0xFFFF6D00), // Change to grey when loading
+        disabledColor: Colors.grey,
+        shape: GFButtonShape.pills,
+        fullWidthButton: true,
+        blockButton: true,
       ),
     );
   }

@@ -39,6 +39,8 @@ dependencies:
   google_generative_ai: ^0.4.7
   shared_preferences: ^2.2.2
   web: 1.1.1
+  getwidget: ^7.0.0
+  lottie: ^3.3.2
 
 dev_dependencies:
   flutter_test:
@@ -66,6 +68,7 @@ flutter:
   assets:
     - assets/images/
     - assets/fonts/Stack_Sans_Text/
+    - assets/animations/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:getwidget/getwidget.dart';
 
 class ConfirmationModal extends StatelessWidget {
   final String title;
@@ -18,40 +19,71 @@ class ConfirmationModal extends StatelessWidget {
   Widget build(BuildContext context) {
     return AlertDialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(16),
       ),
+      backgroundColor: Colors.white,
       title: Text(
         title,
         style: const TextStyle(
           fontFamily: 'StackSansText',
-          fontSize: 16,
+          fontSize: 18,
           fontWeight: FontWeight.bold,
-          color: Colors.black87,
+          color: Color(0xFF212121), // Dark Grey
         ),
       ),
       content: Text(
         content,
         style: const TextStyle(
           fontFamily: 'StackSansText',
-          fontSize: 14,
+          fontSize: 16,
+          color: Color(0xFF212121), // Dark Grey
         ),
       ),
       actions: [
-        TextButton(
-          onPressed: onCancel,
-          style: TextButton.styleFrom(
-            foregroundColor: Colors.black,
-          ),
-          child: const Text('Batal'),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: GFButton(
+                  onPressed: onCancel,
+                  text: 'Batal',
+                  textStyle: const TextStyle(
+                    fontFamily: 'StackSansText',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Color(0xFF212121), // Dark Grey
+                  ),
+                  color: Color(0xFFFAFAFA), // White/Off-White background
+                  shape: GFButtonShape.pills,
+                  borderSide: BorderSide(
+                    color: Color(0xFF212121), // Dark Grey
+                    width: 1,
+                  ),
+                ),
+              ),
+            ),
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                child: GFButton(
+                  onPressed: onConfirm,
+                  text: 'Ya!',
+                  textStyle: const TextStyle(
+                    fontFamily: 'StackSansText',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.white,
+                  ),
+                  color: Color(0xFFFF6D00), // Energetic Orange
+                  shape: GFButtonShape.pills,
+                ),
+              ),
+            ),
+          ],
         ),
-        ElevatedButton(
-          onPressed: onConfirm,
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.black,
-            foregroundColor: Colors.white,
-          ),
-          child: const Text('Ya!'),
-        ),
+        const SizedBox(height: 8),
       ],
     );
   }
