@@ -40,6 +40,12 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
   void initState() {
     super.initState();
 
+    // Set the first question data and start timer after loading saved progress
+    _loadAndStartTimer();
+  }
+  
+  // Load saved progress and then start timer with the correct time
+  Future<void> _loadAndStartTimer() async {
     // Set the first question data
     if (widget.soalList.isNotEmpty) {
       var currentSoal = widget.soalList[currentQuestionIndex];
@@ -47,6 +53,8 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
           currentSoal['soalKategori'] ?? widget.materiName ?? 'Latihan Soal';
       int batasWaktu =
           currentSoal['batasWaktuPengerjaan'] ?? 180; // Default 3 minutes
+      // Initially set waktuDetik to the question's time limit
+      // This will be updated if there's saved progress
       waktuDetik = batasWaktu;
       isiSoal = currentSoal['isiSoal'] ?? '';
       _answerController.clear(); // Start with an empty answer field
@@ -57,13 +65,19 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
     }
 
     // Load saved progress if available
-    _loadSavedProgress();
+    await _loadSavedProgress();
+
+    // Now that we've loaded the saved progress, update the UI
+    // to reflect the correct time remaining
+    setState(() {
+      // The waktuDetik has already been updated in _loadSavedProgress
+    });
 
     startTimer();
   }
 
   // Load saved quiz progress
-  void _loadSavedProgress() async {
+  Future<void> _loadSavedProgress() async {
     if (widget.materiName != null) {
       Map<String, dynamic>? savedProgress = await StorageService.loadQuizProgress(widget.materiName!);
       if (savedProgress != null) {
@@ -71,12 +85,11 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
             ? DateTime.parse(savedProgress['_expectedEndTime']) 
             : null;
         
-        setState(() {
-          currentQuestionIndex = savedProgress['currentQuestionIndex'] ?? currentQuestionIndex;
-          jawabanSiswa = savedProgress['jawabanSiswa'] ?? jawabanSiswa;
-          correctAnswers = savedProgress['correctAnswers'] ?? correctAnswers;
-          incorrectAttempts = savedProgress['incorrectAttempts'] ?? incorrectAttempts;
-        });
+        // Update state values without calling setState here
+        currentQuestionIndex = savedProgress['currentQuestionIndex'] ?? currentQuestionIndex;
+        jawabanSiswa = savedProgress['jawabanSiswa'] ?? jawabanSiswa;
+        correctAnswers = savedProgress['correctAnswers'] ?? correctAnswers;
+        incorrectAttempts = savedProgress['incorrectAttempts'] ?? incorrectAttempts;
 
         // Calculate remaining time based on expected end time
         if (expectedEndTime != null) {
@@ -137,6 +150,8 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
   void dispose() {
     timerService.cancelTimer();
     _answerController.dispose();
+    // Save progress on dispose to ensure data is preserved if the app is closed
+    _saveProgress();
     super.dispose();
   }
 
@@ -193,7 +208,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Terjadi Error, silahkan kirim jawaban lagi')),
       );
-      // Restart timer in case of error
+      // Restart timer in case of error with the current time remaining
       startTimer();
     } finally {
       setState(() {
@@ -228,7 +243,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
           // Save progress for the new question
           _saveProgress();
 
-          // Restart the timer for the next question
+          // Restart the timer for the next question with the new time
           startTimer();
         } else {
           // All questions answered, show final results
@@ -254,7 +269,6 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
       totalQuestions: widget.soalList.length,
       onFinished: () {
         Navigator.of(context).pop(); // Close modal
-        Navigator.of(context).pop(); // Return to previous screen
       },
     );
   }
@@ -267,7 +281,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
         if (didPop) {
           return; // If the default behavior already popped the route, return
         }
-        _loadSavedProgress();
+        await _loadSavedProgress();
         Navigator.of(context).pop();
       },
       child: Scaffold(
