@@ -310,7 +310,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
                 ],
               ),
               child: SafeArea(
-                child: Container(
+                child: SizedBox(
                   height: 60,
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -338,16 +338,14 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
                           ),
                         ),
                       ),
-                      Container(
-                        child: Row(
-                          children: [
-                            TimeDisplay(
-                              timeInSeconds: waktuDetik,
-                              onTimeOver: () {}, // This is handled in the timer logic
-                            ),
-                            const SizedBox(width: 8.0),
-                          ],
-                        ),
+                      Row(
+                        children: [
+                          TimeDisplay(
+                            timeInSeconds: waktuDetik,
+                            onTimeOver: () {}, // This is handled in the timer logic
+                          ),
+                          const SizedBox(width: 8.0),
+                        ],
                       ),
                     ],
                   ),

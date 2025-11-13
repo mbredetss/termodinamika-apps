@@ -21,13 +21,13 @@ class AnswerModal extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       backgroundColor: Colors.white,
-      content: Container(
+      content: SizedBox(
         width: double.maxFinite,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             // Lottie animation based on correctness
-            Container(
+            SizedBox(
               height: 120,
               child: Lottie.asset(
                 isCorrect 

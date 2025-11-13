@@ -24,12 +24,12 @@ class FinalResultModal extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       backgroundColor: Colors.white,
-      content: Container(
+      content: SizedBox(
         width: double.maxFinite,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
+            SizedBox(
               height: 100,
               child: Lottie.asset(
                 isPassed 

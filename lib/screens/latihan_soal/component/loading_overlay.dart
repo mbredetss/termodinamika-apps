@@ -30,7 +30,7 @@ class LoadingOverlay extends StatelessWidget {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
+                    SizedBox(
                       width: 100,
                       height: 100,
                       child: Lottie.asset(

@@ -78,7 +78,7 @@ class QuestionDisplay extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              Container(
+              SizedBox(
                 width: double.maxFinite,
                 child: TextField(
                   controller: controller,
