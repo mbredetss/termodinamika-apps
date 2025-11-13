@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
+import 'package:getwidget/getwidget.dart';
 import '../home/home_screen.dart';
 import 'component/module_list_screen.dart';
 import 'component/materi_data.dart';
@@ -36,10 +37,10 @@ class _MateriScreenState extends State<MateriScreen> {
   @override
   void initState() {
     super.initState();
-    
+
     // Load saved progress from SharedPreferences
     _loadSavedProgress();
-    
+
     // Set the initial content from props if provided
     currentContent = widget.initialContent;
     // Find the subMateri name based on the initial content
@@ -112,10 +113,10 @@ class _MateriScreenState extends State<MateriScreen> {
         if (savedMateri.containsKey('isDoneMateri')) {
           dataMateri[i]['isDoneMateri'] = savedMateri['isDoneMateri'] ?? false;
         }
-        
+
         var savedSubMateriList = savedMateri['subMateri'] as List?;
         var currentSubMateriList = dataMateri[i]['subMateri'] as List?;
-        
+
         if (savedSubMateriList != null && currentSubMateriList != null) {
           for (int j = 0; j < currentSubMateriList.length && j < savedSubMateriList.length; j++) {
             var savedSubMateri = savedSubMateriList[j] as Map<String, dynamic>?;
@@ -145,13 +146,13 @@ class _MateriScreenState extends State<MateriScreen> {
         // Update the current subMateri status to done before navigating (but not for the quiz)
         var currentSubMateri = currentSubMateriList[currentSubMateriIndex];
         String currentSubMateriName = currentSubMateri['nama'] as String;
-        
+
         // Only update isDone if it's not a quiz/latihan soal
-        if (!currentSubMateriName.toLowerCase().contains('latihan soal') && 
+        if (!currentSubMateriName.toLowerCase().contains('latihan soal') &&
             !currentSubMateriName.toLowerCase().contains('ujian')) {
           currentMateri['subMateri'][currentSubMateriIndex]['isDone'] = true;
         }
-        
+
         currentContent = prevSubMateri['isiMateri'] as String;
         currentSubMateriName = prevSubMateri['nama'] as String;
         bottomAppBarTitle = currentSubMateriName;
@@ -170,15 +171,15 @@ class _MateriScreenState extends State<MateriScreen> {
       // Update the current subMateri status to done before navigating (but not for the quiz)
       var currentSubMateri = currentSubMateriList[currentSubMateriIndex];
       String currentSubMateriName = currentSubMateri['nama'] as String;
-      
+
       // Only update isDone if it's not a quiz/latihan soal
-      if (!currentSubMateriName.toLowerCase().contains('latihan soal') && 
+      if (!currentSubMateriName.toLowerCase().contains('latihan soal') &&
           !currentSubMateriName.toLowerCase().contains('ujian')) {
         currentMateri['subMateri'][currentSubMateriIndex]['isDone'] = true;
       }
       // Save progress after updating isDone status
       _saveProgress();
-      
+
       // Find the previous materi that has subMateri
       int prevMateriIndex = currentMateriIndex - 1;
       while (prevMateriIndex >= 0) {
@@ -219,19 +220,19 @@ class _MateriScreenState extends State<MateriScreen> {
     var currentMateri = dataMateri[currentMateriIndex];
     var currentSubMateriList = currentMateri['subMateri'] as List;
 
-    // Check if we are at the last subMateri (latihan soal) 
+    // Check if we are at the last subMateri (latihan soal)
     if (currentSubMateriIndex == currentSubMateriList.length - 1) {
       // Check if this last subMateri is the latihan soal (ujian)
       var lastSubMateri = currentSubMateriList[currentSubMateriIndex];
       String lastSubMateriName = lastSubMateri['nama'] as String;
-      
-      // If it's the last subMateri and its name contains "Latihan Soal" or "ujian", 
+
+      // If it's the last subMateri and its name contains "Latihan Soal" or "ujian",
       // check if the quiz has been completed before allowing to move on
-      if (lastSubMateriName.toLowerCase().contains('latihan soal') || 
+      if (lastSubMateriName.toLowerCase().contains('latihan soal') ||
           lastSubMateriName.toLowerCase().contains('ujian')) {
-        
+
         bool isQuizCompleted = lastSubMateri['isDone'] == true;
-        
+
         // If quiz is not completed, show warning and don't allow navigation
         if (!isQuizCompleted) {
           // Show error message that user needs to complete the quiz first
@@ -277,13 +278,13 @@ class _MateriScreenState extends State<MateriScreen> {
         // Update the current subMateri status to done before navigating (but not for the quiz)
         var currentSubMateri = currentSubMateriList[currentSubMateriIndex];
         String currentSubMateriName = currentSubMateri['nama'] as String;
-        
+
         // Only update isDone if it's not a quiz/latihan soal
-        if (!currentSubMateriName.toLowerCase().contains('latihan soal') && 
+        if (!currentSubMateriName.toLowerCase().contains('latihan soal') &&
             !currentSubMateriName.toLowerCase().contains('ujian')) {
           currentMateri['subMateri'][currentSubMateriIndex]['isDone'] = true;
         }
-        
+
         currentContent = nextSubMateri['isiMateri'] as String;
         currentSubMateriName = nextSubMateri['nama'] as String;
         bottomAppBarTitle = currentSubMateriName;
@@ -302,15 +303,15 @@ class _MateriScreenState extends State<MateriScreen> {
       // Update the current subMateri status to done before navigating (but not for the quiz)
       var currentSubMateri = currentSubMateriList[currentSubMateriIndex];
       String currentSubMateriName = currentSubMateri['nama'] as String;
-      
+
       // Only update isDone if it's not a quiz/latihan soal
-      if (!currentSubMateriName.toLowerCase().contains('latihan soal') && 
+      if (!currentSubMateriName.toLowerCase().contains('latihan soal') &&
           !currentSubMateriName.toLowerCase().contains('ujian')) {
         currentMateri['subMateri'][currentSubMateriIndex]['isDone'] = true;
       }
       // Save progress after updating isDone status
       _saveProgress();
-      
+
       // Check if the current materi is completed before allowing navigation to the next one
       if (isMateriCompleted(currentMateriIndex)) {
         // Find the next materi that has subMateri
@@ -352,12 +353,12 @@ class _MateriScreenState extends State<MateriScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.transparent,
+        backgroundColor: const Color(0xFF303F9F), // Deep Indigo (primary)
         elevation: 0,
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back,
-            color: Color(0xFF555555), // Dark gray
+            color: Color(0xFFFF6D00), // Orange icon
           ),
           onPressed: () {
             Navigator.push(
@@ -371,7 +372,7 @@ class _MateriScreenState extends State<MateriScreen> {
           IconButton(
             icon: const Icon(
               Icons.search,
-              color: Colors.grey, // Medium gray
+              color: Color(0xFFFF6D00), // Orange icon
             ),
             onPressed: () {
               _showSearchOverlay();
@@ -380,7 +381,7 @@ class _MateriScreenState extends State<MateriScreen> {
           IconButton(
             icon: const Icon(
               Icons.list,
-              color: Colors.grey, // Medium gray
+              color: Color(0xFFFF6D00), // Orange icon
             ),
             onPressed: () {
               // Navigate to module list screen with slide-in animation
@@ -415,7 +416,7 @@ class _MateriScreenState extends State<MateriScreen> {
           // PopupMenuButton(
           //   icon: Icon(
           //     Icons.more_vert,
-          //     color: Colors.grey, // Medium gray
+          //     color: Color(0xFFFF6D00), // Orange icon
           //   ),
           //   itemBuilder: (context) => [
           //     const PopupMenuItem(value: 'option1', child: Text('Menu Opsi 1')),
@@ -550,7 +551,7 @@ class _MateriScreenState extends State<MateriScreen> {
       },
     );
   }
-  
+
   // Show warning modal for trying to navigate across different materi
   void showCrossMateriWarning() {
     showDialog(
@@ -566,7 +567,7 @@ class _MateriScreenState extends State<MateriScreen> {
       },
     );
   }
-  
+
   // Show warning modal when trying to access next materi before completing current one
   void showMateriPrerequisiteWarning() {
     showDialog(
@@ -635,11 +636,11 @@ class _MateriScreenState extends State<MateriScreen> {
       }
     });
   }
-  
+
   Future<void> recordQuizAttempt(String materiName) async {
     DateTime cooldownEndTime = DateTime.now().add(Duration(minutes: 15)); // 15 minutes from now
     await CooldownService.saveCooldown(materiName, cooldownEndTime);
-    
+
     setState(() {
       _isQuizAvailable = false;
     });
@@ -678,28 +679,56 @@ class _MateriScreenState extends State<MateriScreen> {
           context: context,
           builder: (BuildContext context) {
             return AlertDialog(
-              title: const Text(
-                'Kuis dalam cooldown',
-                style: TextStyle(
-                  fontFamily: 'StackSansText',
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              title: Row(
+                children: [
+                  Icon(
+                    Icons.timer,
+                    color: const Color(0xFFFF6D00), // Orange color
+                    size: 24,
+                  ),
+                  const SizedBox(width: 8),
+                  const Text(
+                    'Kuis dalam cooldown',
+                    style: TextStyle(
+                      fontFamily: 'StackSansText',
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
               ),
               content: Text(
                 'Anda harus menunggu sebelum mengambil kuis ini lagi. Tersisa: ${formatCountdownTime(_remainingCooldownTime)}',
                 style: const TextStyle(
                   fontFamily: 'StackSansText',
-                  fontSize: 14,
+                  fontSize: 16,
+                  color: Colors.black54,
                 ),
               ),
               actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Close the modal
-                  },
-                  child: const Text('OK'),
+                Center(
+                  child: GFButton(
+                    onPressed: () {
+                      Navigator.of(context).pop(); // Close the modal
+                    },
+                    text: 'OK',
+                    textStyle: const TextStyle(
+                      fontFamily: 'StackSansText',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
+                    ),
+                    color: const Color(0xFF303F9F), // Deep Indigo color
+                    shape: GFButtonShape.pills,
+                    size: GFSize.SMALL,
+                    elevation: 2,
+                  ),
                 ),
+                const SizedBox(height: 16),
               ],
             );
           },
@@ -712,7 +741,28 @@ class _MateriScreenState extends State<MateriScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          title: Row(
+            children: [
+              Icon(
+                Icons.quiz,
+                color: const Color(0xFFFF6D00), // Orange color
+                size: 24,
+              ),
+              const SizedBox(width: 8),
+              const Text(
+                'Konfirmasi Ujian',
+                style: TextStyle(
+                  fontFamily: 'StackSansText',
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.black87,
+                ),
+              ),
+            ],
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -722,50 +772,45 @@ class _MateriScreenState extends State<MateriScreen> {
                 style: TextStyle(
                   fontFamily: 'StackSansText',
                   fontSize: 16,
-                  fontWeight: FontWeight.bold,
+                  fontWeight: FontWeight.w500,
+                  color: Colors.black87,
                 ),
               ),
               const SizedBox(height: 8),
               const Text(
                 'Jika Anda mengambil ujian ini, maka Anda baru akan dapat mengambilnya lagi 15 menit setelah ujian berakhir',
-                style: TextStyle(fontFamily: 'StackSansText', fontSize: 14),
+                style: TextStyle(
+                  fontFamily: 'StackSansText',
+                  fontSize: 14,
+                  color: Colors.black54,
+                ),
               ),
             ],
           ),
           actions: [
-            Container(
-              decoration: const BoxDecoration(
-                border: Border(
-                  top: BorderSide(color: Colors.black, width: 1.0),
-                ),
-              ),
-              width: double.infinity,
-              padding: const EdgeInsets.only(top: 8.0),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  TextButton(
+                  GFButton(
                     onPressed: () {
                       Navigator.of(context).pop(); // Close the modal
                     },
-                    style: TextButton.styleFrom(
-                      foregroundColor: Colors.black,
-                      backgroundColor: Colors.white,
-                      side: const BorderSide(
-                        color: Colors.black,
-                        width: 1.0,
-                      ),
+                    text: 'Batal',
+                    textStyle: const TextStyle(
+                      fontFamily: 'StackSansText',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.black87,
                     ),
-                    child: const Text(
-                      'Batal',
-                      style: TextStyle(
-                        fontFamily: 'StackSansText',
-                        fontSize: 14,
-                      ),
-                    ),
+                    color: Colors.grey[300] ?? Colors.grey, // Fallback to Colors.grey if Colors.grey[300] is null
+                    shape: GFButtonShape.pills,
+                    size: GFSize.SMALL,
+                    elevation: 2,
                   ),
-                  const SizedBox(width: 8),
-                  ElevatedButton(
+                  const SizedBox(width: 16),
+                  GFButton(
                     onPressed: () {
                       Navigator.of(context).pop(); // Close the modal
                       // Navigate to the quiz screen without recording the attempt here
@@ -775,7 +820,7 @@ class _MateriScreenState extends State<MateriScreen> {
                         var soalList = materi['soal'] as List?;
                         if (soalList != null && soalList.isNotEmpty) {
                           // Convert the list to a list of Map<String, dynamic>
-                          List<Map<String, dynamic>> typedSoalList = 
+                          List<Map<String, dynamic>> typedSoalList =
                               soalList.cast<Map<String, dynamic>>();
 
                           if (mounted) {
@@ -794,17 +839,17 @@ class _MateriScreenState extends State<MateriScreen> {
                         }
                       }
                     },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.black,
-                      foregroundColor: Colors.white,
+                    text: 'Lanjut',
+                    textStyle: const TextStyle(
+                      fontFamily: 'StackSansText',
+                      fontSize: 16,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white,
                     ),
-                    child: const Text(
-                      'Lanjut',
-                      style: TextStyle(
-                        fontFamily: 'StackSansText',
-                        fontSize: 14,
-                      ),
-                    ),
+                    color: const Color(0xFF303F9F), // Deep Indigo color
+                    shape: GFButtonShape.pills,
+                    size: GFSize.SMALL,
+                    elevation: 2,
                   ),
                 ],
               ),
@@ -814,7 +859,7 @@ class _MateriScreenState extends State<MateriScreen> {
       },
     );
   }
-  
+
   // Method to show search overlay
   void _showSearchOverlay() {
     Navigator.push(
@@ -825,7 +870,7 @@ class _MateriScreenState extends State<MateriScreen> {
           onResultTap: (result, searchKeyword) {
             // Find the index of the selected subMateri
             int? materiIndex, subMateriIndex;
-            
+
             for (int i = 0; i < dataMateri.length; i++) {
               var subMateriList = dataMateri[i]['subMateri'] as List;
               for (int j = 0; j < subMateriList.length; j++) {
@@ -837,7 +882,7 @@ class _MateriScreenState extends State<MateriScreen> {
               }
               if (materiIndex != null && subMateriIndex != null) break;
             }
-            
+
             if (materiIndex != null && subMateriIndex != null) {
               // Check if the selected subMateri is accessible
               if (isSubMateriAccessible(materiIndex, subMateriIndex)) {
@@ -851,10 +896,10 @@ class _MateriScreenState extends State<MateriScreen> {
                   _activeSearchKeyword = searchKeyword;
                   _markdownKey = Key('${currentContent.hashCode}');
                 });
-                
+
                 // Save progress after updating isDone status
                 _saveProgress();
-                
+
                 // Check quiz availability for the new content
                 checkQuizAvailability();
               } else {
@@ -863,33 +908,56 @@ class _MateriScreenState extends State<MateriScreen> {
                   context: context,
                   builder: (BuildContext context) {
                     return AlertDialog(
-                      title: const Text(
-                        'Warning',
-                        style: TextStyle(
-                          fontFamily: 'StackSansText',
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.red,
-                        ),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      title: Row(
+                        children: [
+                          Icon(
+                            Icons.warning,
+                            color: Colors.orange[700],
+                            size: 24,
+                          ),
+                          const SizedBox(width: 8),
+                          const Text(
+                            'Warning',
+                            style: TextStyle(
+                              fontFamily: 'StackSansText',
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
                       ),
                       content: const Text(
                         'Maaf, Anda belum bisa membuka modul ini. Mohon pastikan semua modul sebelumnya (termasuk latihan soal) sudah diselesaikan.',
-                        style: TextStyle(fontFamily: 'StackSansText', fontSize: 16),
+                        style: TextStyle(
+                          fontFamily: 'StackSansText',
+                          fontSize: 16,
+                          color: Colors.black54,
+                        ),
                       ),
                       actions: [
-                        TextButton(
-                          onPressed: () {
-                            Navigator.of(context).pop(); // Close the modal
-                          },
-                          child: const Text(
-                            'OK',
-                            style: TextStyle(
+                        Center(
+                          child: GFButton(
+                            onPressed: () {
+                              Navigator.of(context).pop(); // Close the modal
+                            },
+                            text: 'OK',
+                            textStyle: const TextStyle(
                               fontFamily: 'StackSansText',
                               fontSize: 16,
-                              color: Colors.black,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
                             ),
+                            color: const Color(0xFF303F9F), // Deep Indigo color
+                            shape: GFButtonShape.pills,
+                            size: GFSize.SMALL,
+                            elevation: 2,
                           ),
                         ),
+                        const SizedBox(height: 16),
                       ],
                     );
                   },
@@ -901,7 +969,7 @@ class _MateriScreenState extends State<MateriScreen> {
       ),
     );
   }
-  
+
   // Check if the subMateri at the given indices is accessible
   bool isSubMateriAccessible(int materiIndex, int subMateriIndex) {
     // If it's the first subMateri of the first materi, it's always accessible
@@ -927,7 +995,7 @@ class _MateriScreenState extends State<MateriScreen> {
       return previousSubMateri['isDone'] == true;
     }
   }
-  
+
   // Build content with highlighted search keywords
   Widget _buildContentWithHighlights(String content) {
     // If there's no active search keyword, just render the content as Markdown
@@ -1207,14 +1275,14 @@ class _SearchOverlayState extends State<SearchOverlay> {
 
       for (var materi in widget.dataMateri) {
         var subMateriList = materi['subMateri'] as List;
-        
+
         for (var subMateri in subMateriList) {
           String isiMateri = subMateri['isiMateri'] as String;
           String namaSubMateri = subMateri['nama'] as String;
-          
+
           // Count occurrences of the keyword in the content
           int count = _countKeywordOccurrences(isiMateri.toLowerCase(), _searchKeyword);
-          
+
           if (count > 0) {
             _searchResults.add({
               'materi': materi['namaMateri'],
@@ -1230,10 +1298,10 @@ class _SearchOverlayState extends State<SearchOverlay> {
 
   int _countKeywordOccurrences(String content, String keyword) {
     if (keyword.isEmpty) return 0;
-    
+
     int count = 0;
     int index = 0;
-    
+
     while (index < content.length) {
       index = content.indexOf(keyword, index);
       if (index == -1) {
@@ -1242,7 +1310,7 @@ class _SearchOverlayState extends State<SearchOverlay> {
       count++;
       index += keyword.length;
     }
-    
+
     return count;
   }
 
@@ -1250,12 +1318,12 @@ class _SearchOverlayState extends State<SearchOverlay> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
+        backgroundColor: const Color(0xFF303F9F), // Deep Indigo (primary)
         elevation: 0,
         leading: IconButton(
           icon: const Icon(
             Icons.arrow_back,
-            color: Color(0xFF555555), // Dark gray
+            color: Color(0xFFFF6D00), // Orange icon
           ),
           onPressed: () {
             Navigator.pop(context);
@@ -1265,10 +1333,11 @@ class _SearchOverlayState extends State<SearchOverlay> {
           controller: _searchController,
           decoration: InputDecoration(
             hintText: 'Cari dalam materi...',
-            hintStyle: const TextStyle(color: Colors.grey),
+            hintStyle: const TextStyle(color: Colors.white),
             border: InputBorder.none,
-            prefixIcon: const Icon(Icons.search, color: Colors.grey),
+            prefixIcon: const Icon(Icons.search, color: Color(0xFFFF6D00)), // Orange icon
           ),
+          style: const TextStyle(color: Colors.white), // White text for contrast
           autofocus: true,
         ),
       ),
@@ -1330,7 +1399,7 @@ class _SearchOverlayState extends State<SearchOverlay> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: Colors.blue[100],
+                            color: const Color(0xFFFFE0B2), // Light orange background
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -1338,7 +1407,7 @@ class _SearchOverlayState extends State<SearchOverlay> {
                             style: const TextStyle(
                               fontFamily: 'StackSansText',
                               fontWeight: FontWeight.bold,
-                              color: Colors.blue,
+                              color: Color(0xFFFF6D00), // Orange color
                             ),
                           ),
                         ),
@@ -1375,22 +1444,22 @@ class _SearchOverlayState extends State<SearchOverlay> {
 
     // Find the first occurrence of the keyword to create a preview
     int startIndex = content.toLowerCase().indexOf(keyword);
-    
+
     // If the keyword exists in the content
     if (startIndex != -1) {
       // Get the text before the keyword (up to 50 characters before)
       int startPreview = (startIndex - 50).clamp(0, content.length);
       // Get the text after the keyword (up to 100 characters after)
       int endPreview = (startIndex + keyword.length + 100).clamp(0, content.length);
-      
+
       String before = content.substring(startPreview, startIndex);
       String matched = content.substring(startIndex, startIndex + keyword.length);
       String after = content.substring(startIndex + keyword.length, endPreview);
-      
+
       // Add "..." if the preview is truncated
       String prefix = startPreview > 0 ? '... ' : '';
       String suffix = endPreview < content.length ? ' ...' : '';
-      
+
       return Container(
         padding: const EdgeInsets.only(top: 4.0),
         child: RichText(
@@ -1428,7 +1497,7 @@ class _SearchOverlayState extends State<SearchOverlay> {
         ),
       );
     }
-    
+
     // If keyword is not found, return an empty container
     return const SizedBox.shrink();
   }

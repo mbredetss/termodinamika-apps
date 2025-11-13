@@ -269,6 +269,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
       correctAnswers: correctAnswers,
       totalQuestions: widget.soalList.length,
       onFinished: () {
+        widget.recordQuizAttempt!(widget.materiName!);
         Navigator.of(context).pop(); // Close modal
       },
     );

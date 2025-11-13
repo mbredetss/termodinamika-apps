@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:getwidget/getwidget.dart'; // Using Get Widget for enhanced styling
 
 class StartQuizButton extends StatelessWidget {
   final VoidCallback onPressed;
@@ -12,27 +13,21 @@ class StartQuizButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.only(top: 16.0),
-      child: ElevatedButton(
+      child: GFButton(
         onPressed: onPressed,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.black,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(
-            horizontal: 32,
-            vertical: 12,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+        text: 'Mulai',
+        textStyle: const TextStyle(
+          fontFamily: 'StackSansText',
+          fontSize: 16,
+          fontWeight: FontWeight.w500,
+          color: Colors.white,
         ),
-        child: const Text(
-          'Mulai',
-          style: TextStyle(
-            fontFamily: 'StackSansText',
-            fontSize: 16,
-            fontWeight: FontWeight.w500,
-          ),
-        ),
+        color: const Color(0xFF303F9F), // Deep Indigo color
+        shape: GFButtonShape.pills,
+        size: GFSize.MEDIUM,
+        fullWidthButton: false,
+        elevation: 2,
+        splashColor: Colors.white.withOpacity(0.2),
       ),
     );
   }
