@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:termodinamika_apps/services/cooldown_service.dart';
+import 'package:termodinamika_apps/services/storage_service.dart';
 import 'quiz_progress_service.dart';
 
 class QuizCompletionService {
@@ -49,7 +50,7 @@ class QuizCompletionService {
       }
 
       // Save the updated progress
-      // StorageService.saveProgress(materiList);
+      StorageService.saveProgress(materiList);
     }
 
     // Clear the saved quiz progress as the quiz is completed
