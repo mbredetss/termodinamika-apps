@@ -12,3 +12,4 @@ NOTE:
 - Jika Anda membuat Widget, letakkan codenya di folder /components dari root main module.
 - Jika ada fungsi yang ingin Anda buat, letakkan di folder /services (buat kalau tidak ada) dari root main module.
 - Jika ada screen baru, buat codenya di folder /lib/screen
+- Gunakan perintah flutter add {nama package yang ingin dinstall} untuk menambahkan dependensi

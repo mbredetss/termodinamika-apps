@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:getwidget/getwidget.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../home/home_screen.dart';
 import 'component/module_list_screen.dart';
 import 'component/materi_data.dart';
@@ -1032,7 +1034,29 @@ class _MateriScreenState extends State<MateriScreen> {
             backgroundColor: Colors.grey,
             color: Colors.white,
           ),
+          a: const TextStyle(
+            color: Color(0xFF303F9F), // Deep Indigo
+            decoration: TextDecoration.underline,
+          ),
         ),
+        onTapLink: (text, href, title) async {
+          if (href != null) {
+            // Check if we're on the web
+            if (kIsWeb) {
+              // For web, open link in a new tab
+              await launchUrl(
+                Uri.parse(href),
+                mode: LaunchMode.externalApplication,
+              );
+            } else {
+              // For mobile, open link in an in-app browser
+              await launchUrl(
+                Uri.parse(href),
+                mode: LaunchMode.inAppBrowserView,
+              );
+            }
+          }
+        },
         imageBuilder: (Uri uri, String? title, String? altText) {
           // Check if the URI is a relative path that should point to assets
           if (uri.path.contains('Aspose.Words')) {

@@ -1,7 +1,8 @@
 Map<String, dynamic> ujianAkhir(String namaMateri) {
   return {
     'nama': 'Latihan Soal $namaMateri',
-    'isiMateri': '''
+    'isiMateri':
+        '''
 # Aturan
 
 Kuis ini bertujuan untuk menguji pengetahuan Anda tentang materi Termodinamika: $namaMateri
@@ -28,75 +29,10 @@ List<Map<String, dynamic>> dataMateri = [
 Termodinamika merupakan cabang fisika yang mempelajari hubungan antara panas, kerja, dan energi. Dalam kehidupan sehari-hari, konsep termodinamika dapat ditemukan pada berbagai peristiwa, seperti mesin mobil yang mengubah energi panas menjadi gerak, atau lemari es yang memindahkan panas dari ruang dingin ke lingkungan.
 
 Untuk memahami proses-proses ini, kita perlu mengenal konsep gas ideal dan hukum-hukum termodinamika yang menjadi dasar perhitungannya.
-
-**Gas Ideal** 
-
-   Gas ideal merupakan konsep dasar dalam termodinamika yang menggambarkan perilaku gas secara teoretis. Dalam pandangan mikroskopik, gas ideal didefinisikan sebagai gas yang terdiri atas partikel-partikel kecil yang disebut molekul (Hartini, 2015). Molekul-molekul ini bergerak secara acak atau serampangan dan selalu mengikuti hukum-hukum gerak Newton.
-
-   Jumlah molekul dalam suatu gas ideal sangat besar, namun volume setiap molekul sangat kecil sehingga dapat diabaikan dibandingkan dengan volume total gas. Selain itu, tidak ada gaya tarik-menarik yang signifikan antar molekul kecuali ketika terjadi tumbukan. Tumbukan yang terjadi antara molekul bersifat elastis sempurna, artinya tidak ada energi kinetik yang hilang selama tumbukan tersebut. Tumbukan juga terjadi dalam waktu yang sangat singkat.
-
-   Perilaku gas ideal dalam berbagai kondisi dinyatakan dalam hukum-hukum gas (Radjawane, 2022) yang menjelaskan hubungan antara tekanan (P), volume (V), jumlah mol (n), dan suhu (T). Hukum-hukum tersebut antara lain:
-
-1. Hukum Boyle
-
-   Hukum Boyle menyatakan bahwa hasil kali antara tekanan dan volume gas merupakan konstanta apabila suhu dan jumlah mol gas tetap.
-
-   Secara matematis dapat dituliskan sebagai:
-
-   PV=konstan
-
-   pada suhu dan jumlah mol tetap.
-
-   Artinya, jika volume gas mengecil maka tekanannya akan meningkat, dan sebaliknya.
-
-1. Hukum Charles
-
-   Hukum Charles menemukan bahwa pada tekanan dan jumlah mol konstan, volume gas berbanding lurus dengan suhu mutlaknya (T).
-
-   Secara matematis dinyatakan sebagai:
-
-   VT=konstan
-
-   Artinya, semakin tinggi suhu suatu gas, maka volumenya juga akan meningkat apabila tekanannya dijaga tetap.
-
-1. Hukum Gay-Lussac
-
-   Menurut hukum Gay-Lussac, pada volume tetap, tekanan gas akan meningkat seiring dengan meningkatnya suhu.
-
-   Secara matematis dapat dituliskan sebagai:
-
-   PT=konstan
-
-   Dengan kata lain, tekanan gas berbanding lurus dengan suhu mutlaknya ketika volume tidak berubah.
-
-1. Hukum Avogadro
-
-   Hukum Avogadro menyatakan bahwa pada suhu dan tekanan yang sama, gas-gas dengan volume yang sama akan memiliki jumlah molekul yang sama.
-
-   Secara matematis, hubungan ini ditulis sebagai:
-
-   Vn=konstan
-
-   Artinya, jika jumlah mol gas bertambah, maka volumenya juga bertambah dengan tekanan dan suhu yang tetap.
-
-1. Persamaan Keadaan Gas Ideal
-
-   Dari keempat hukum di atas, maka dapat dirangkum dalam satu hubungan umum yang disebut persamaan keadaan gas ideal (Hartini, 2015):
-
-   PV=nRT
-
-   dengan:
-
-- P= Tekanan gas (Pa)
-- V= Volume gas (m³)
-- n= Jumlah mol gas
-- R= Tetapan gas umum (8,31 J/mol·K)
-- T= Suhu mutlak (K)
-
-Persamaan ini menggambarkan keterkaitan antara besaran-besaran utama dalam sistem gas ideal, yang menjadi dasar dalam berbagai analisis termodinamika.
+Berikut [simulasinya](https://phet.colorado.edu/sims/html/forces-and-motion-basics/latest/forces-and-motion-basics_en.html)
 ''',
         'isDone': false,
-      }, 
+      },
       {
         'nama': 'Hukum I Termodinamika',
         'isiMateri': '''
@@ -347,17 +283,20 @@ Efisiensi maksimum mesin panas dicapai oleh mesin Carnot, dan tidak ada mesin ny
 ''',
         'isDone': false,
       },
-      ujianAkhir('Gas Ideal')
+      ujianAkhir('Gas Ideal'),
     ],
     'soal': [
       {
-        'isiSoal': 'Jelaskan apa yang dimaksud dengan hukum pertama termodinamika, dan berikan contoh penerapannya dalam kehidupan sehari-hari!',
-        'kunciJawaban': '“Hukum pertama termodinamika menyatakan bahwa energi tidak dapat diciptakan maupun dimusnahkan, tetapi dapat diubah dari satu bentuk ke bentuk lainnya”. Artinya kalor yang masuk ke sistem dapat menaikkan energi dalam sistem atau digunakan untuk melakukan usaha.', 
-        'soalKategori': '', 
-        'batasWaktuPengerjaan': 500,  
+        'isiSoal':
+            'Jelaskan apa yang dimaksud dengan hukum pertama termodinamika, dan berikan contoh penerapannya dalam kehidupan sehari-hari!',
+        'kunciJawaban':
+            '“Hukum pertama termodinamika menyatakan bahwa energi tidak dapat diciptakan maupun dimusnahkan, tetapi dapat diubah dari satu bentuk ke bentuk lainnya”. Artinya kalor yang masuk ke sistem dapat menaikkan energi dalam sistem atau digunakan untuk melakukan usaha.',
+        'soalKategori': '',
+        'batasWaktuPengerjaan': 500,
       },
       {
-        'isiSoal': 'Sebongkah tembaga bermassa 200 gram dipanaskan dari suhu 25°C hingga 125°C. Jika kalor jenis tembaga c = 0,39 J/g°C, hitunglah kalor yang diperlukan!',
+        'isiSoal':
+            'Sebongkah tembaga bermassa 200 gram dipanaskan dari suhu 25°C hingga 125°C. Jika kalor jenis tembaga c = 0,39 J/g°C, hitunglah kalor yang diperlukan!',
         'kunciJawaban': '''
 Diketahui: m = 200 g, 
 c = 0,39 J/g°C
@@ -369,10 +308,11 @@ Q = 200 × 0,39 × 100
 Q = 7800 J
 Jadi, kalor yang diperlukan untuk memanaskan tembaga tersebut adalah Q = 7,8 × 10³ Joule.
 ''',
-        'batasWaktuPengerjaan': 300, 
-      }, 
+        'batasWaktuPengerjaan': 300,
+      },
       {
-        'isiSoal': 'Air bermassa 200 gram bersuhu 25°C dicampur dengan air panas 100 gram bersuhu 80°C dalam wadah kalorimeter yang diabaikan kalor jenisnya. Hitunglah suhu akhir campuran! (Diketahui kalor jenis air c = 4,2 J/g°C).',
+        'isiSoal':
+            'Air bermassa 200 gram bersuhu 25°C dicampur dengan air panas 100 gram bersuhu 80°C dalam wadah kalorimeter yang diabaikan kalor jenisnya. Hitunglah suhu akhir campuran! (Diketahui kalor jenis air c = 4,2 J/g°C).',
         'kunciJawaban': '''
 Diketahui : m1 = 100 g
 m2 = 200 g
@@ -391,11 +331,11 @@ Tf = 13000/300
 Tf = 43,3°C
 Jadi, suhu akhir campuran air adalah Tf = 43,3°C.
 ''',
-        'soalKategori': '', 
-        'batasWaktuPengerjaan': 300, 
-      }, 
+        'soalKategori': '',
+        'batasWaktuPengerjaan': 300,
+      },
     ],
-    'isDoneMateri': false, 
+    'isDoneMateri': false,
   },
 
   {
@@ -443,21 +383,22 @@ Meskipun bermanfaat, pengguna tetap perlu memverifikasi informasi karena ChatGPT
 ''',
         'isDone': false,
       },
-      ujianAkhir('Apa itu Chat GPT')
+      ujianAkhir('Apa itu Chat GPT'),
     ],
     'soal': [
       {
-        'isiSoal': 'Jelaskan secara singkat apa itu ChatGPT dan bagaimana cara kerjanya.',
+        'isiSoal':
+            'Jelaskan secara singkat apa itu ChatGPT dan bagaimana cara kerjanya.',
         'kunciJawaban': '''
 ChatGPT adalah model bahasa buatan yang dikembangkan oleh OpenAI untuk menghasilkan teks alami. 
 Model ini bekerja dengan memprediksi kata berikutnya berdasarkan konteks input, 
 menggunakan pola yang dipelajari dari data besar. 
 Teknologi ini memungkinkan ChatGPT menjawab pertanyaan dan berdialog seperti manusia.
 ''',
-        'soalKategori': '', 
+        'soalKategori': '',
         'batasWaktuPengerjaan': 300, // 5 menit
       },
     ],
-    'isDoneMateri': false, 
+    'isDoneMateri': false,
   },
 ];
