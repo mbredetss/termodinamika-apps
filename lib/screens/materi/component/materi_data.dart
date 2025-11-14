@@ -1,11 +1,11 @@
-Map<String, dynamic> ujianAkhir(String namaMateri) {
+Map<String, dynamic> ujianAkhir() {
   return {
-    'nama': 'Latihan Soal $namaMateri',
+    'nama': 'Latihan Soal Termodinamika',
     'isiMateri':
         '''
 # Aturan
 
-Kuis ini bertujuan untuk menguji pengetahuan Anda tentang materi Termodinamika: $namaMateri
+Kuis ini bertujuan untuk menguji pengetahuan Anda tentang materi Termodinamika yang telah dipelajari sebelumnya.
 
 Terdapat 10 pertanyaan yang harus dikerjakan dalam soal latihan ini. Beberapa ketentuannya sebagai berikut:
 - Syarat kelulusan : minimal harus menjawab 8 soal dengan benar
@@ -283,7 +283,7 @@ Efisiensi maksimum mesin panas dicapai oleh mesin Carnot, dan tidak ada mesin ny
 ''',
         'isDone': false,
       },
-      ujianAkhir('Gas Ideal'),
+      ujianAkhir(),
     ],
     'soal': [
       {
@@ -383,7 +383,7 @@ Meskipun bermanfaat, pengguna tetap perlu memverifikasi informasi karena ChatGPT
 ''',
         'isDone': false,
       },
-      ujianAkhir('Apa itu Chat GPT'),
+      ujianAkhir(),
     ],
     'soal': [
       {
