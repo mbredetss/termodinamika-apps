@@ -9,5 +9,6 @@ NOTE:
 - Warna yang hanya boleh di aplikasi ini: Deep Indigo / Midnight Blue	#1A237E, Energetic Orange	#FF6D00, Electric Violet / Purple	#651FFF, Dark Grey	#212121, White / Off-White	#FAFAFA, 
 - Design tampilan yang konsisten disemua screen sesuai dengan pengalamanmu sebagai mobile/web frontend & UI UX expert berpengalaman selama 20tahun.
 - Gunakan UI Library: Get Widget dalam mendesign aplikasi
-- Jika Anda membuat Widget, letakkan codenya di folder /component dari root main module.
-- Jika ada fungsi yang ingin Anda buat, letakkan di folder /service (buat kalau tidak ada) dari root main module.
+- Jika Anda membuat Widget, letakkan codenya di folder /components dari root main module.
+- Jika ada fungsi yang ingin Anda buat, letakkan di folder /services (buat kalau tidak ada) dari root main module.
+- Jika ada screen baru, buat codenya di folder /lib/screen
