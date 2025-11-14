@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:termodinamika_apps/services/storage_service.dart';
+import 'package:termodinamika_apps/services/platform_storage_service.dart';
 import 'component/question_display.dart';
 import 'component/submit_button.dart';
 import 'component/time_display.dart';

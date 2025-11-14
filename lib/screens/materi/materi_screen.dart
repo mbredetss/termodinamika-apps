@@ -10,7 +10,7 @@ import 'component/warning_modal.dart';
 import 'component/countdown_display.dart';
 import 'component/start_quiz_button.dart';
 import '../latihan_soal/latihan_soal_screen.dart';
-import '../../services/storage_service.dart';
+import '../../services/platform_storage_service.dart';
 import '../../services/cooldown_service.dart';
 
 class MateriScreen extends StatefulWidget {

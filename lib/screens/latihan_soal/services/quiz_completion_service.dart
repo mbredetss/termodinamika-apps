@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:termodinamika_apps/services/cooldown_service.dart';
-import 'package:termodinamika_apps/services/storage_service.dart';
+import 'package:termodinamika_apps/services/platform_storage_service.dart';
 import 'quiz_progress_service.dart';
 
 class QuizCompletionService {

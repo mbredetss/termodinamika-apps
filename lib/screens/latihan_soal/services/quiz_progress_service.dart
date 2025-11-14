@@ -1,4 +1,4 @@
-import 'package:termodinamika_apps/services/storage_service.dart';
+import 'package:termodinamika_apps/services/platform_storage_service.dart';
 
 class QuizProgressService {
   /// Load saved quiz progress
