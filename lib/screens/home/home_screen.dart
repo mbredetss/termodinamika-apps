@@ -3,7 +3,7 @@ import '../materi/materi_screen.dart';
 import '../materi/component/materi_data.dart';
 import '../../services/storage_service.dart';
 import '../relax/relax_screen.dart';
-import '../../components/background_wrapper.dart';
+import 'components/background_wrapper.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});

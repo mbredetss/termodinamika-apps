@@ -38,9 +38,16 @@ dependencies:
   # firebase_core: ^4.2.1
   google_generative_ai: ^0.4.7
   shared_preferences: ^2.2.2
-  web: 1.1.1
   getwidget: ^7.0.0
   lottie: ^3.3.2
+  flutter_launcher_icons: ^0.14.4
+
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/images/ThermoMind.png"
+  adaptive_icon_background: "#1A237E"  # Using the Deep Indigo color from your color scheme
+  adaptive_icon_foreground: "assets/images/ThermoMind.png"
 
 dev_dependencies:
   flutter_test:
