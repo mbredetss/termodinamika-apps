@@ -41,12 +41,13 @@ dependencies:
   getwidget: ^7.0.0
   lottie: ^3.3.2
   flutter_launcher_icons: ^0.14.4
+  rename_app: ^1.6.5
 
 flutter_icons:
   android: true
   ios: true
   image_path: "assets/images/ThermoMind.png"
-  adaptive_icon_background: "#1A237E"  # Using the Deep Indigo color from your color scheme
+  adaptive_icon_background: "#00000000"
   adaptive_icon_foreground: "assets/images/ThermoMind.png"
 
 dev_dependencies:
