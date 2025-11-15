@@ -6,6 +6,7 @@ import '../materi/components/materi_data.dart';
 import '../materi/components/module_list_screen.dart';
 import '../profile/profile_screen.dart'; // Add import for Profile screen
 import '../../services/storage_service.dart';
+import '../../services/tutorial_service.dart';
 import 'components/background_wrapper.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -20,12 +21,28 @@ class _HomeScreenState extends State<HomeScreen> {
   double _progressValue = 0.0;
   final List<Map<String, dynamic>> _completedSubMateri = [];
   final List<Map<String, dynamic>> _incompleteSubMateri = [];
+  bool _tutorialCompleted = false;
+
+  // Keys for UI elements that will be highlighted in the tutorial
+  final GlobalKey _greetingKey = GlobalKey();
+  final GlobalKey _progressKey = GlobalKey();
+  final GlobalKey _continueLearningKey = GlobalKey();
+  final GlobalKey _quickAccessKey = GlobalKey();
+  final GlobalKey _bottomNavKey = GlobalKey();
 
   @override
   void initState() {
     super.initState();
+    _checkTutorialStatus();
     _loadUserName();
     _loadProgressFromStorage();
+  }
+
+  Future<void> _checkTutorialStatus() async {
+    bool completed = await TutorialService.isTutorialCompleted();
+    setState(() {
+      _tutorialCompleted = completed;
+    });
   }
 
   Future<void> _loadUserName() async {
@@ -33,6 +50,13 @@ class _HomeScreenState extends State<HomeScreen> {
     if (savedName != null && savedName.isNotEmpty) {
       setState(() {
         _userName = savedName;
+      });
+
+      // If user has a name but hasn't completed the tutorial, show it after UI is built
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!_tutorialCompleted) {
+          _showTutorial();
+        }
       });
     } else {
       _showNameInputDialog();
@@ -46,142 +70,186 @@ class _HomeScreenState extends State<HomeScreen> {
         final controller = TextEditingController();
         String selectedAvatar = 'assets/images/avatar-1.png'; // Default avatar
 
-        return StatefulBuilder(
-          builder: (BuildContext context, StateSetter setState) {
-            return AlertDialog(
-              title: const Text('Selamat Datang!'),
-              content: SizedBox(
-                height: 350,
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const Text('Masukkan nama kamu dan pilih avatar untuk memulai belajar:'),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: controller,
-                      decoration: const InputDecoration(
-                        hintText: 'Nama kamu...',
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.all(16.0),
+        return PopScope(
+          canPop: false, // Prevent back button from dismissing the dialog
+          child: StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return AlertDialog(
+                title: const Text('Selamat Datang!'),
+                content: SizedBox(
+                  height: 350,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Text(
+                        'Masukkan nama kamu dan pilih avatar untuk memulai belajar:',
                       ),
-                      onSubmitted: (value) {
-                        if (value.trim().isNotEmpty) {
-                          Navigator.of(context).pop(value.trim());
-                        }
-                      },
-                    ),
-                    const SizedBox(height: 16),
-                    const Text('Pilih Avatar:'),
-                    const SizedBox(height: 8),
-                    Container(
-                      height: 120,
-                      child: Column(
-                        children: [
-                          // First row of avatars (avatars 1-3)
-                          Expanded(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                for (int i = 1; i <= 3; i++)
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          selectedAvatar = 'assets/images/avatar-$i.png';
-                                        });
-                                      },
-                                      child: Container(
-                                        margin: const EdgeInsets.all(4),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: selectedAvatar == 'assets/images/avatar-$i.png'
-                                                ? const Color(0xFFFF6D00) // Energetic Orange
-                                                : Colors.transparent,
-                                            width: 2,
+                      const SizedBox(height: 16),
+                      TextField(
+                        controller: controller,
+                        decoration: const InputDecoration(
+                          hintText: 'Nama kamu...',
+                          border: OutlineInputBorder(),
+                          contentPadding: EdgeInsets.all(16.0),
+                        ),
+                        onSubmitted: (value) {
+                          if (value.trim().isNotEmpty) {
+                            Navigator.of(context).pop(value.trim());
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      const Text('Pilih Avatar:'),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        height: 120,
+                        child: Column(
+                          children: [
+                            // First row of avatars (avatars 1-3)
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  for (int i = 1; i <= 3; i++)
+                                    Expanded(
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            selectedAvatar =
+                                                'assets/images/avatar-$i.png';
+                                          });
+                                        },
+                                        child: Container(
+                                          margin: const EdgeInsets.all(4),
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color:
+                                                  selectedAvatar ==
+                                                      'assets/images/avatar-$i.png'
+                                                  ? const Color(
+                                                      0xFFFF6D00,
+                                                    ) // Energetic Orange
+                                                  : Colors.transparent,
+                                              width: 2,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
                                           ),
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(10),
-                                          child: Image.asset(
-                                            'assets/images/avatar-$i.png',
-                                            fit: BoxFit.cover,
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                            child: Image.asset(
+                                              'assets/images/avatar-$i.png',
+                                              fit: BoxFit.cover,
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                          // Second row of avatars (avatars 4-6)
-                          Expanded(
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                              children: [
-                                for (int i = 4; i <= 6; i++)
-                                  Expanded(
-                                    child: GestureDetector(
-                                      onTap: () {
-                                        setState(() {
-                                          selectedAvatar = 'assets/images/avatar-$i.png';
-                                        });
-                                      },
-                                      child: Container(
-                                        margin: const EdgeInsets.all(4),
-                                        decoration: BoxDecoration(
-                                          border: Border.all(
-                                            color: selectedAvatar == 'assets/images/avatar-$i.png'
-                                                ? const Color(0xFFFF6D00) // Energetic Orange
-                                                : Colors.transparent,
-                                            width: 2,
+                            // Second row of avatars (avatars 4-6)
+                            Expanded(
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
+                                children: [
+                                  for (int i = 4; i <= 6; i++)
+                                    Expanded(
+                                      child: GestureDetector(
+                                        onTap: () {
+                                          setState(() {
+                                            selectedAvatar =
+                                                'assets/images/avatar-$i.png';
+                                          });
+                                        },
+                                        child: Container(
+                                          margin: const EdgeInsets.all(4),
+                                          decoration: BoxDecoration(
+                                            border: Border.all(
+                                              color:
+                                                  selectedAvatar ==
+                                                      'assets/images/avatar-$i.png'
+                                                  ? const Color(
+                                                      0xFFFF6D00,
+                                                    ) // Energetic Orange
+                                                  : Colors.transparent,
+                                              width: 2,
+                                            ),
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
                                           ),
-                                          borderRadius: BorderRadius.circular(10),
-                                        ),
-                                        child: ClipRRect(
-                                          borderRadius: BorderRadius.circular(10),
-                                          child: Image.asset(
-                                            'assets/images/avatar-$i.png',
-                                            fit: BoxFit.cover,
+                                          child: ClipRRect(
+                                            borderRadius: BorderRadius.circular(
+                                              10,
+                                            ),
+                                            child: Image.asset(
+                                              'assets/images/avatar-$i.png',
+                                              fit: BoxFit.cover,
+                                            ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () {
-                    Navigator.of(context).pop(); // Close without saving
-                  },
-                  child: const Text('Batal'),
-                ),
-                ElevatedButton(
-                  onPressed: () {
-                    if (controller.text.trim().isNotEmpty) {
-                      // Save both name and avatar to storage
-                      getStorageService().setItem('user_name', controller.text.trim());
-                      getStorageService().setItem('user_avatar', selectedAvatar);
-                      Navigator.of(context).pop(controller.text.trim());
-                    }
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF1A237E), // Deep Indigo
-                    foregroundColor: Colors.white,
+                    ],
                   ),
-                  child: const Text('Simpan'),
                 ),
-              ],
-            );
-          },
+                actions: [
+                  TextButton(
+                    onPressed: () {
+                      // Show tutorial when user presses 'Batal'
+                      Navigator.of(context).pop(); // Close without saving
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (!_tutorialCompleted) {
+                          _showTutorial();
+                        }
+                      });
+                    },
+                    child: const Text('Batal'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      if (controller.text.trim().isNotEmpty) {
+                        // Save both name and avatar to storage
+                        getStorageService().setItem(
+                          'user_name',
+                          controller.text.trim(),
+                        );
+                        getStorageService().setItem(
+                          'user_avatar',
+                          selectedAvatar,
+                        );
+                        Navigator.of(context).pop(controller.text.trim());
+
+                        // Show tutorial after user saves their information
+                        WidgetsBinding.instance.addPostFrameCallback((_) {
+                          if (!_tutorialCompleted) {
+                            _showTutorial();
+                          }
+                        });
+                      }
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF1A237E), // Deep Indigo
+                      foregroundColor: Colors.white,
+                    ),
+                    child: const Text('Simpan'),
+                  ),
+                ],
+              );
+            },
+          ),
         );
       },
     );
@@ -208,10 +276,16 @@ class _HomeScreenState extends State<HomeScreen> {
         var currentSubMateriList = dataMateri[i]['subMateri'] as List?;
 
         if (savedSubMateriList != null && currentSubMateriList != null) {
-          for (int j = 0; j < currentSubMateriList.length && j < savedSubMateriList.length; j++) {
+          for (
+            int j = 0;
+            j < currentSubMateriList.length && j < savedSubMateriList.length;
+            j++
+          ) {
             var savedSubMateri = savedSubMateriList[j] as Map<String, dynamic>?;
-            if (savedSubMateri != null && savedSubMateri.containsKey('isDone')) {
-              currentSubMateriList[j]['isDone'] = savedSubMateri['isDone'] ?? false;
+            if (savedSubMateri != null &&
+                savedSubMateri.containsKey('isDone')) {
+              currentSubMateriList[j]['isDone'] =
+                  savedSubMateri['isDone'] ?? false;
             }
           }
         }
@@ -258,7 +332,6 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-
   // Find the first incomplete sub materi to suggest to the user
   Map<String, dynamic>? _findNextIncompleteSubMateri() {
     if (_incompleteSubMateri.isNotEmpty) {
@@ -296,9 +369,12 @@ class _HomeScreenState extends State<HomeScreen> {
               children: [
                 // Top section with greeting and progress
                 Container(
+                  key: _greetingKey,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF212121).withOpacity(0.7), // Dark Grey with transparency
+                    color: const Color(
+                      0xFF212121,
+                    ).withValues(alpha: 0.7), // Dark Grey with transparency
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -331,14 +407,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                 ),
                                 const SizedBox(height: 8),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: LinearProgressIndicator(
-                                    value: _progressValue / 100,
-                                    minHeight: 10,
-                                    backgroundColor: const Color(0xFF651FFF), // Electric Violet
-                                    valueColor: const AlwaysStoppedAnimation<Color>(
-                                      Color(0xFFFF6D00), // Energetic Orange
+                                Container(
+                                  key: _progressKey,
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10),
+                                    child: LinearProgressIndicator(
+                                      value: _progressValue / 100,
+                                      minHeight: 10,
+                                      backgroundColor: const Color(
+                                        0xFF651FFF,
+                                      ), // Electric Violet
+                                      valueColor:
+                                          const AlwaysStoppedAnimation<Color>(
+                                            Color(
+                                              0xFFFF6D00,
+                                            ), // Energetic Orange
+                                          ),
                                     ),
                                   ),
                                 ),
@@ -381,9 +465,12 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 // Main CTA Card
                 Container(
+                  key: _continueLearningKey,
                   padding: const EdgeInsets.all(20),
                   decoration: BoxDecoration(
-                    color: const Color(0xFF212121).withOpacity(0.7), // Dark Grey with transparency
+                    color: const Color(
+                      0xFF212121,
+                    ).withValues(alpha: 0.7), // Dark Grey with transparency
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Column(
@@ -431,14 +518,17 @@ class _HomeScreenState extends State<HomeScreen> {
                             const SizedBox(height: 20),
                             ElevatedButton.icon(
                               onPressed: () {
-                                _navigateToMateriScreen(nextSubMateri['isiMateri'], nextSubMateri['nama']);
+                                _navigateToMateriScreen(
+                                  nextSubMateri['isiMateri'],
+                                  nextSubMateri['nama'],
+                                );
                               },
                               icon: const Icon(
                                 Icons.play_arrow,
                                 color: Colors.white,
                               ),
                               label: const Text(
-                                'Mulai Kerjakan',
+                                'Mulai Belajar',
                                 style: TextStyle(
                                   fontFamily: 'StackSansText',
                                   fontSize: 16,
@@ -447,9 +537,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFFF6D00), // Energetic Orange
+                                backgroundColor: const Color(
+                                  0xFFFF6D00,
+                                ), // Energetic Orange
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 12,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -476,7 +571,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const ModuleListScreen(),
+                                    builder: (context) =>
+                                        const ModuleListScreen(),
                                   ),
                                 );
                               },
@@ -494,9 +590,14 @@ class _HomeScreenState extends State<HomeScreen> {
                                 ),
                               ),
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFFFF6D00), // Energetic Orange
+                                backgroundColor: const Color(
+                                  0xFFFF6D00,
+                                ), // Energetic Orange
                                 foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 20,
+                                  vertical: 12,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(8),
                                 ),
@@ -516,9 +617,12 @@ class _HomeScreenState extends State<HomeScreen> {
                       children: [
                         // Quick Access Section
                         Container(
+                          key: _quickAccessKey,
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF212121).withOpacity(0.7), // Dark Grey with transparency
+                            color: const Color(
+                              0xFF212121,
+                            ).withValues(alpha: 0.7), // Dark Grey with transparency
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(
@@ -535,7 +639,8 @@ class _HomeScreenState extends State<HomeScreen> {
                               ),
                               const SizedBox(height: 16),
                               Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
                                 children: [
                                   _buildQuickAccessItem(
                                     icon: Icons.school,
@@ -544,7 +649,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                       Navigator.push(
                                         context,
                                         MaterialPageRoute(
-                                          builder: (context) => const ModuleListScreen(),
+                                          builder: (context) =>
+                                              const ModuleListScreen(),
                                         ),
                                       );
                                     },
@@ -577,7 +683,9 @@ class _HomeScreenState extends State<HomeScreen> {
                         Container(
                           padding: const EdgeInsets.all(16),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF212121).withOpacity(0.7), // Dark Grey with transparency
+                            color: const Color(
+                              0xFF212121,
+                            ).withValues(alpha: 0.7), // Dark Grey with transparency
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(
@@ -596,7 +704,7 @@ class _HomeScreenState extends State<HomeScreen> {
                               Container(
                                 padding: const EdgeInsets.all(12),
                                 decoration: BoxDecoration(
-                                  color: const Color(0xFF1A237E).withOpacity(0.5), // Deep Indigo with transparency
+                                  color: const Color(0xFF1A237E).withValues(alpha: 0.5), // Deep Indigo with transparency
                                   borderRadius: BorderRadius.circular(8),
                                 ),
                                 child: const Text(
@@ -621,6 +729,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ),
         bottomNavigationBar: BottomNavigationBar(
+          key: _bottomNavKey,
           type: BottomNavigationBarType.fixed,
           backgroundColor: const Color(0xFF212121), // Dark Grey
           selectedItemColor: const Color(0xFFFF6D00), // Energetic Orange
@@ -636,22 +745,13 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           currentIndex: 0, // Home is selected by default
           items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.school),
-              label: 'Materi',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person),
-              label: 'Profil',
-            ),
+            BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+            BottomNavigationBarItem(icon: Icon(Icons.school), label: 'Materi'),
+            BottomNavigationBarItem(icon: Icon(Icons.person), label: 'Profil'),
           ],
           onTap: (index) {
             // Handle navigation based on index
-            switch(index) {
+            switch (index) {
               case 0:
                 // Already on Home
                 break;
@@ -673,7 +773,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildQuickAccessItem({required IconData icon, required String label, required VoidCallback onTap}) {
+  Widget _buildQuickAccessItem({
+    required IconData icon,
+    required String label,
+    required VoidCallback onTap,
+  }) {
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -720,10 +824,16 @@ class _HomeScreenState extends State<HomeScreen> {
         var currentSubMateriList = dataMateri[i]['subMateri'] as List?;
 
         if (savedSubMateriList != null && currentSubMateriList != null) {
-          for (int j = 0; j < currentSubMateriList.length && j < savedSubMateriList.length; j++) {
+          for (
+            int j = 0;
+            j < currentSubMateriList.length && j < savedSubMateriList.length;
+            j++
+          ) {
             var savedSubMateri = savedSubMateriList[j] as Map<String, dynamic>?;
-            if (savedSubMateri != null && savedSubMateri.containsKey('isDone')) {
-              currentSubMateriList[j]['isDone'] = savedSubMateri['isDone'] ?? false;
+            if (savedSubMateri != null &&
+                savedSubMateri.containsKey('isDone')) {
+              currentSubMateriList[j]['isDone'] =
+                  savedSubMateri['isDone'] ?? false;
             }
           }
         }
@@ -757,7 +867,11 @@ class _HomeScreenState extends State<HomeScreen> {
       String? lastCompletedTitle;
 
       // Find the last completed content
-      for (int materiIndex = 0; materiIndex < dataMateri.length; materiIndex++) {
+      for (
+        int materiIndex = 0;
+        materiIndex < dataMateri.length;
+        materiIndex++
+      ) {
         var materi = dataMateri[materiIndex];
         var subMateriList = materi['subMateri'] as List;
 
@@ -785,9 +899,7 @@ class _HomeScreenState extends State<HomeScreen> {
       // Navigate to RelaxScreen instead of directly to materi screen
       Navigator.push(
         context,
-        MaterialPageRoute(
-          builder: (context) => const RelaxScreen(),
-        ),
+        MaterialPageRoute(builder: (context) => const RelaxScreen()),
       );
     }
   }
@@ -814,12 +926,253 @@ class _HomeScreenState extends State<HomeScreen> {
   void _showProfileScreen() async {
     await Navigator.push(
       context,
-      MaterialPageRoute(
-        builder: (context) => const ProfileScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const ProfileScreen()),
     );
     // Reload user data and refresh the UI after returning from profile screen
     _loadUserName();
     _loadProgressFromStorage();
+  }
+
+  void _showTutorial() {
+    // Create tutorial steps with element keys and descriptions
+    List<Map<String, dynamic>> tutorialSteps = [
+      {
+        'key': _greetingKey,
+        'title': 'Selamat Datang!',
+        'description':
+            'Ini adalah halaman utama aplikasi. Di sini kamu bisa melihat sapaan dan informasi pengguna.',
+      },
+      {
+        'key': _progressKey,
+        'title': 'Progres Belajar',
+        'description':
+            'Bagian ini menunjukkan seberapa banyak materi yang sudah kamu pelajari. Progres ini akan terus diperbarui saat kamu menyelesaikan materi.',
+      },
+      {
+        'key': _continueLearningKey,
+        'title': 'Lanjut Belajar',
+        'description':
+            'Kartu ini menunjukkan materi berikutnya yang harus kamu kerjakan. Kamu bisa langsung melanjutkan belajar dengan mengetuk tombol ini.',
+      },
+      {
+        'key': _quickAccessKey,
+        'title': 'Akses Cepat',
+        'description':
+            'Akses cepat ke berbagai fitur penting seperti daftar materi, kumpulan rumus, dan profil pengguna.',
+      },
+      {
+        'key': _bottomNavKey,
+        'title': 'Navigasi',
+        'description':
+            'Gunakan menu bawah ini untuk berpindah antar halaman utama aplikasi.',
+      },
+    ];
+
+    _showTutorialStep(tutorialSteps, 0);
+  }
+
+  void _showTutorialStep(
+    List<Map<String, dynamic>> steps,
+    int currentStepIndex,
+  ) {
+    if (currentStepIndex >= steps.length) {
+      // Tutorial completed
+      TutorialService.setTutorialCompleted();
+      setState(() {
+        _tutorialCompleted = true;
+      });
+      return;
+    }
+
+    Map<String, dynamic> currentStep = steps[currentStepIndex];
+    GlobalKey key = currentStep['key'];
+
+    // Wait for the widget to be rendered before getting its position
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      RenderBox? overlay =
+          Overlay.of(context).context.findRenderObject() as RenderBox?;
+      RenderBox? targetBox =
+          key.currentContext?.findRenderObject() as RenderBox?;
+
+      if (targetBox == null || overlay == null) {
+        // If the target is not found, proceed to next step
+        _showTutorialStep(steps, currentStepIndex + 1);
+        return;
+      }
+
+      // Calculate target position
+      var targetLocalPos = targetBox.localToGlobal(
+        Offset.zero,
+        ancestor: overlay,
+      );
+      var targetSize = targetBox.size;
+
+      // Calculate the position for the tutorial card
+      double cardTop;
+      double cardLeft = targetLocalPos.dx;
+
+      // Special positioning for the quick access and bottom navigation sections to position the card above the elements
+      if (key == _quickAccessKey || key == _bottomNavKey) {
+        // Position the card above the element
+        cardTop = targetLocalPos.dy - 200; // 200px above the target
+        if (cardTop < 20) {
+          // If it would be off-screen, position it below instead
+          cardTop = targetLocalPos.dy + targetSize.height + 20;
+        }
+      } else {
+        // Standard positioning: below the target element
+        cardTop = targetLocalPos.dy + targetSize.height + 20;
+      }
+
+      // Ensure the card stays within screen bounds
+      double screenWidth = MediaQuery.of(context).size.width;
+      if (cardLeft + 300 > screenWidth) {
+        cardLeft = screenWidth - 320; // 300 for card width + 20 margin
+      }
+
+      // Display the tutorial overlay
+      showDialog(
+        context: context,
+        barrierDismissible: false,
+        useSafeArea: false,
+        builder: (BuildContext context) {
+          return StatefulBuilder(
+            builder: (BuildContext context, StateSetter setState) {
+              return Stack(
+                children: [
+                  // The normal screen content remains visible (no dark overlay)
+
+                  // Highlighted area around the target element
+                  Positioned(
+                    left: targetLocalPos.dx - 10,
+                    top: targetLocalPos.dy - 10,
+                    width: targetSize.width + 20,
+                    height: targetSize.height + 20,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFFF6D00).withValues(alpha: 0.1), // Subtle orange background
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: const Color(0xFFFF6D00), // Energetic Orange
+                          width: 2,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: const Color(0xFFFF6D00).withValues(alpha: 0.3),
+                            blurRadius: 10,
+                            spreadRadius: 2,
+                            offset: const Offset(0, 0),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                  // Tutorial information card
+                  Positioned(
+                    top: cardTop,
+                    left: cardLeft,
+                    width: 300,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFF1A237E), // Deep Indigo
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: 0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              currentStep['title'],
+                              style: const TextStyle(
+                                fontFamily: 'StackSansText',
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFFF6D00), // Energetic Orange
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              currentStep['description'],
+                              style: const TextStyle(
+                                fontFamily: 'StackSansText',
+                                fontSize: 14,
+                                color: Color(0xFFFAFAFA), // White/Off-White
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.end,
+                              children: [
+                                if (currentStepIndex > 0)
+                                  TextButton(
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                      _showTutorialStep(
+                                        steps,
+                                        currentStepIndex - 1,
+                                      );
+                                    },
+                                    style: TextButton.styleFrom(
+                                      foregroundColor: const Color(
+                                        0xFFFAFAFA,
+                                      ), // White/Off-White
+                                    ),
+                                    child: const Text(
+                                      'Sebelumnya',
+                                      style: TextStyle(
+                                        fontFamily: 'StackSansText',
+                                      ),
+                                    ),
+                                  ),
+                                const SizedBox(width: 8),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                    _showTutorialStep(
+                                      steps,
+                                      currentStepIndex + 1,
+                                    );
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(
+                                      0xFFFF6D00,
+                                    ), // Energetic Orange
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  child: Text(
+                                    currentStepIndex == steps.length - 1
+                                        ? 'Selesai'
+                                        : 'Lanjut',
+                                    style: const TextStyle(
+                                      fontFamily: 'StackSansText',
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+    });
   }
 }
