@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:termodinamika_apps/screens/relax/relax_screen.dart';
 import 'package:termodinamika_apps/services/platform_storage_service.dart';
 import '../materi/materi_screen.dart';
-import '../materi/component/materi_data.dart';
-import '../materi/component/module_list_screen.dart';
+import '../materi/components/materi_data.dart';
+import '../materi/components/module_list_screen.dart';
 import '../profile/profile_screen.dart'; // Add import for Profile screen
 import '../../services/storage_service.dart';
 import 'components/background_wrapper.dart';

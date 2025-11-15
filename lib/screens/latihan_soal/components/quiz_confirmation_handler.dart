@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../component/confirmation_modal.dart';
+import 'confirmation_modal.dart';
 import '../services/answer_validation_service.dart';
 
 class QuizConfirmationHandler {

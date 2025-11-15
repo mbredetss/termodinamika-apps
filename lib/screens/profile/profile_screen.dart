@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../materi/component/materi_data.dart';
+import '../materi/components/materi_data.dart';
 import '../../services/storage_service.dart';
 import '../../services/platform_storage_service.dart';
 import '../../services/streak_service.dart';

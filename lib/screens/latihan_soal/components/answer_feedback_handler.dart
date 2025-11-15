@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../component/answer_modal.dart';
+import 'answer_modal.dart';
 
 class AnswerFeedbackHandler {
   /// Shows the answer feedback modal with explanation

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../component/final_result_modal.dart';
+import 'final_result_modal.dart';
 
 class FinalResultHandler {
   /// Shows the final result modal at the end of the quiz

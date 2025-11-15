@@ -1,18 +1,18 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:termodinamika_apps/services/platform_storage_service.dart';
-import 'component/question_display.dart';
-import 'component/submit_button.dart';
-import 'component/time_display.dart';
-import 'component/loading_overlay.dart';
+import 'components/question_display.dart';
+import 'components/submit_button.dart';
+import 'components/time_display.dart';
+import 'components/loading_overlay.dart';
 import 'services/quiz_progress_service.dart';
 import 'services/timer_service.dart';
 import 'services/api_service.dart';
 import 'services/quiz_completion_service.dart';
-import 'component/quiz_confirmation_handler.dart';
-import 'component/answer_feedback_handler.dart';
-import 'component/final_result_handler.dart';
-import '../materi/component/materi_data.dart';
+import 'components/quiz_confirmation_handler.dart';
+import 'components/answer_feedback_handler.dart';
+import 'components/final_result_handler.dart';
+import '../materi/components/materi_data.dart';
 
 class LatihanSoalScreen extends StatefulWidget {
   final List<Map<String, dynamic>> soalList;
