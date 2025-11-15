@@ -747,17 +747,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   bool _evaluateHukumIOne() {
-    for (var materi in dataMateri) {
-      if (materi['namaMateri'] == 'Gas Ideal') {
-        var subMateriList = materi['subMateri'] as List;
-        for (var subMateri in subMateriList) {
-          if (subMateri['nama'] == 'Hukum I Termodinamika' &&
-              subMateri['isDone'] == true) {
-            return true;
-          }
-        }
-        break;
-      }
+    if (dataMateri.isNotEmpty) {
+      var firstMateri = dataMateri[0];
+      return firstMateri['isDoneMateri'] == true;
     }
     return false;
   }
