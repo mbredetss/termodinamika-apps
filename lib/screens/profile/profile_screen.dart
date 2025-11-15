@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../materi/component/materi_data.dart';
 import '../../services/storage_service.dart';
 import '../../services/platform_storage_service.dart';
+import '../../services/streak_service.dart';
 import '../home/components/background_wrapper.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -105,9 +106,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     }
 
-    // Calculate streak (simplified for now)
-    _currentStreak =
-        5; // Placeholder value - would require date tracking in a real implementation
+    // Update streak using the new StreakService
+    await StreakService.updateStreak();
+    _currentStreak = await StreakService.getCurrentStreak();
 
     setState(() {});
   }
