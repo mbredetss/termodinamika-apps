@@ -297,14 +297,14 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
                 gradient: LinearGradient(
                   colors: [
                     Color(0xFF1A237E), // Deep Indigo
-                    Color(0xFF1A237E).withOpacity(0.9), // Slightly lighter Deep Indigo
+                    Color(0xFF1A237E).withValues(alpha: 0.9), // Slightly lighter Deep Indigo
                   ],
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 8,
                     offset: Offset(0, 4),
                   ),

@@ -27,7 +27,7 @@ class StartQuizButton extends StatelessWidget {
         size: GFSize.MEDIUM,
         fullWidthButton: false,
         elevation: 2,
-        splashColor: Colors.white.withOpacity(0.2),
+        splashColor: Colors.white.withValues(alpha: 0.2),
       ),
     );
   }

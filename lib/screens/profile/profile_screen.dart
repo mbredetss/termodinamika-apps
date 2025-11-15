@@ -252,7 +252,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     decoration: BoxDecoration(
                       color: const Color(
                         0xFF212121,
-                      ).withOpacity(0.7), // Dark Grey with transparency
+                      ).withValues(alpha: 0.7), // Dark Grey with transparency
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -329,7 +329,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     decoration: BoxDecoration(
                       color: const Color(
                         0xFF212121,
-                      ).withOpacity(0.7), // Dark Grey with transparency
+                      ).withValues(alpha: 0.7), // Dark Grey with transparency
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -380,7 +380,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     decoration: BoxDecoration(
                       color: const Color(
                         0xFF212121,
-                      ).withOpacity(0.7), // Dark Grey with transparency
+                      ).withValues(alpha: 0.7), // Dark Grey with transparency
                       borderRadius: BorderRadius.circular(12),
                     ),
                     child: Column(
@@ -416,7 +416,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ],
                         ),
                         const SizedBox(height: 16),
-                        Container(
+                        SizedBox(
                           height: 100,
                           child: _buildAchievementsList(),
                         ),
