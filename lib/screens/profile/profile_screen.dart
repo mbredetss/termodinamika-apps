@@ -96,9 +96,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     }
 
-    // Calculate passed essays - for now, we'll use a simplified approach
-    // In a real implementation, we would track essay completion separately
-    _passedEssays = (_completedMateri / 2).ceil(); // Simplified for now
+    // Calculate passed essays - count how many 'isDoneMateri' are true in dataMateri
+    // This now correctly uses the data loaded from storage
+    _passedEssays = 0;
+    for (var materi in dataMateri) {
+      if (materi['isDoneMateri'] == true) {
+        _passedEssays++;
+      }
+    }
 
     // Calculate streak (simplified for now)
     _currentStreak =
