@@ -469,7 +469,6 @@ class _MateriScreenState extends State<MateriScreen> {
           height: 56,
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               IconButton(
                 icon: const Icon(
@@ -481,13 +480,17 @@ class _MateriScreenState extends State<MateriScreen> {
                   goToPreviousSubMateri();
                 },
               ),
-              Text(
-                bottomAppBarTitle ?? 'Prasyarat Kemampuan',
-                style: const TextStyle(
-                  fontFamily: 'StackSansText',
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Colors.black87,
+              Expanded(
+                child: Text(
+                  bottomAppBarTitle ?? 'Prasyarat Kemampuan',
+                  style: const TextStyle(
+                    fontFamily: 'StackSansText',
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: Colors.black87,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                  textAlign: TextAlign.center,
                 ),
               ),
               IconButton(
