@@ -73,39 +73,84 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 16),
                     const Text('Pilih Avatar:'),
                     const SizedBox(height: 8),
-                    SizedBox(
-                      height: 100,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    Container(
+                      height: 120,
+                      child: Column(
                         children: [
-                          for (int i = 1; i <= 6; i++)
-                            GestureDetector(
-                              onTap: () {
-                                setState(() {
-                                  selectedAvatar = 'assets/images/avatar-$i.png';
-                                });
-                              },
-                              child: Container(
-                                width: 50,
-                                height: 50,
-                                decoration: BoxDecoration(
-                                  border: Border.all(
-                                    color: selectedAvatar == 'assets/images/avatar-$i.png'
-                                        ? const Color(0xFFFF6D00) // Energetic Orange
-                                        : Colors.transparent,
-                                    width: 2,
+                          // First row of avatars (avatars 1-3)
+                          Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                for (int i = 1; i <= 3; i++)
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          selectedAvatar = 'assets/images/avatar-$i.png';
+                                        });
+                                      },
+                                      child: Container(
+                                        margin: const EdgeInsets.all(4),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: selectedAvatar == 'assets/images/avatar-$i.png'
+                                                ? const Color(0xFFFF6D00) // Energetic Orange
+                                                : Colors.transparent,
+                                            width: 2,
+                                          ),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(10),
+                                          child: Image.asset(
+                                            'assets/images/avatar-$i.png',
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
                                   ),
-                                  borderRadius: BorderRadius.circular(10),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(10),
-                                  child: Image.asset(
-                                    'assets/images/avatar-$i.png',
-                                    fit: BoxFit.cover,
-                                  ),
-                                ),
-                              ),
+                              ],
                             ),
+                          ),
+                          // Second row of avatars (avatars 4-6)
+                          Expanded(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                              children: [
+                                for (int i = 4; i <= 6; i++)
+                                  Expanded(
+                                    child: GestureDetector(
+                                      onTap: () {
+                                        setState(() {
+                                          selectedAvatar = 'assets/images/avatar-$i.png';
+                                        });
+                                      },
+                                      child: Container(
+                                        margin: const EdgeInsets.all(4),
+                                        decoration: BoxDecoration(
+                                          border: Border.all(
+                                            color: selectedAvatar == 'assets/images/avatar-$i.png'
+                                                ? const Color(0xFFFF6D00) // Energetic Orange
+                                                : Colors.transparent,
+                                            width: 2,
+                                          ),
+                                          borderRadius: BorderRadius.circular(10),
+                                        ),
+                                        child: ClipRRect(
+                                          borderRadius: BorderRadius.circular(10),
+                                          child: Image.asset(
+                                            'assets/images/avatar-$i.png',
+                                            fit: BoxFit.cover,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
                     ),
