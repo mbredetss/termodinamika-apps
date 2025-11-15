@@ -100,28 +100,35 @@ class _RelaxScreenState extends State<RelaxScreen> {
   @override
   Widget build(BuildContext context) {
     return BackgroundWrapper(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Lottie animation
-          Lottie.asset(
-            'assets/animations/relax.json',
-            width: 500,
-            height: 500,
-          ),
-          const SizedBox(height: 32),
-          // Instruction text (now bold and larger)
-          const Text(
-            'Luangkan waktu sebentar untuk menenangkan pikiranmu sebelum belajar',
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontFamily: 'StackSansText',
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Lottie animation - now responsive to screen size
+            Expanded(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                child: Lottie.asset(
+                  'assets/animations/relax.json',
+                  fit: BoxFit.contain,
+                ),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            // Instruction text (now bold and larger)
+            Text(
+              'Luangkan waktu sebentar untuk menenangkan pikiranmu sebelum belajar',
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                fontFamily: 'StackSansText',
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
