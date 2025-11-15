@@ -21,80 +21,78 @@ class AnswerModal extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
       ),
       backgroundColor: Colors.white,
-      content: SizedBox(
-        width: double.maxFinite,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Lottie animation based on correctness
-            SizedBox(
-              height: 120,
-              child: Lottie.asset(
-                isCorrect 
-                  ? 'assets/animations/Success.json' 
-                  : 'assets/animations/Error animation.json',
-                fit: BoxFit.contain,
-              ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Lottie animation based on correctness
+          SizedBox(
+            height: 120,
+            child: Lottie.asset(
+              isCorrect
+                ? 'assets/animations/Success.json'
+                : 'assets/animations/Error animation.json',
+              fit: BoxFit.contain,
             ),
-            const SizedBox(height: 16),
-            Text(
-              isCorrect ? 'Jawaban Benar!' : 'Jawaban Salah!',
-              style: TextStyle(
-                fontFamily: 'StackSansText',
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: isCorrect 
-                  ? Color(0xFF00C853) // Bright Green
-                  : Color(0xFFD50000), // Warning Red
-              ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            isCorrect ? 'Jawaban Benar!' : 'Jawaban Salah!',
+            style: TextStyle(
+              fontFamily: 'StackSansText',
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: isCorrect
+                ? Color(0xFF00C853) // Bright Green
+                : Color(0xFFD50000), // Warning Red
             ),
-            const SizedBox(height: 8),
-            Container(
+          ),
+          const SizedBox(height: 8),
+          Flexible(
+            child: Container(
               width: double.maxFinite,
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
                 color: Color(0xFFFAFAFA), // White/Off-White background
                 borderRadius: BorderRadius.circular(8),
                 border: Border.all(
-                  color: isCorrect 
+                  color: isCorrect
                     ? Color(0xFF00C853) // Bright Green
                     : Color(0xFFD50000), // Warning Red
                   width: 1,
                 ),
               ),
-              child: Text(
-                explanation,
-                style: const TextStyle(
-                  fontFamily: 'StackSansText',
-                  fontSize: 16,
-                  color: Color(0xFF212121), // Dark Grey
+              child: SingleChildScrollView(
+                child: Text(
+                  explanation,
+                  style: const TextStyle(
+                    fontFamily: 'StackSansText',
+                    fontSize: 16,
+                    color: Color(0xFF212121), // Dark Grey
+                  ),
                 ),
               ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
       actions: [
-        Center(
-          child: SizedBox(
-            width: double.infinity,
-            height: 48,
-            child: GFButton(
-              onPressed: onContinue,
-              text: 'Lanjut',
-              textStyle: const TextStyle(
-                fontFamily: 'StackSansText',
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.white,
-              ),
-              color: Color(0xFFFF6D00), // Energetic Orange
-              shape: GFButtonShape.pills,
-              fullWidthButton: true,
+        SizedBox(
+          width: double.infinity,
+          height: 48,
+          child: GFButton(
+            onPressed: onContinue,
+            text: 'Lanjut',
+            textStyle: const TextStyle(
+              fontFamily: 'StackSansText',
+              fontSize: 16,
+              fontWeight: FontWeight.w500,
+              color: Colors.white,
             ),
+            color: Color(0xFFFF6D00), // Energetic Orange
+            shape: GFButtonShape.pills,
+            fullWidthButton: true,
           ),
         ),
-        const SizedBox(height: 8),
       ],
     );
   }
