@@ -3,6 +3,8 @@ import 'package:lottie/lottie.dart';
 import '../materi/materi_screen.dart';
 import '../materi/components/materi_data.dart';
 import '../home/components/background_wrapper.dart';
+import '../../services/learning_path_service.dart';
+import '../../services/progress_tracking_service.dart';
 
 class RelaxScreen extends StatefulWidget {
   const RelaxScreen({super.key});
@@ -22,69 +24,61 @@ class _RelaxScreenState extends State<RelaxScreen> {
     });
   }
 
-  void _navigateToMateriScreen() {
-    // Find the first incomplete content to navigate to
-    String? firstAccessibleContent;
-    String? firstAccessibleTitle;
+  Future<void> _navigateToMateriScreen() async {
+    // Use the learning path service to get the next sub-materi to navigate to
+    Map<String?, String?>? nextSubMateri = await LearningPathService.getNextSubMateri();
 
-    // Track the last completed content in case all content is done
-    String? lastCompletedContent;
-    String? lastCompletedTitle;
+    String? contentToNavigate;
+    String? titleToNavigate = 'Prasyarat Kemampuan';
 
-    bool foundFirstIncomplete = false;
+    if (nextSubMateri != null) {
+      String? materiName = nextSubMateri['materiName'];
+      String? subMateriName = nextSubMateri['subMateriName'];
 
-    for (int materiIndex = 0; materiIndex < dataMateri.length; materiIndex++) {
-      var materi = dataMateri[materiIndex];
-      var subMateriList = materi['subMateri'] as List;
+      // Find the content for the next sub-materi
+      for (var materi in dataMateri) {
+        if (materi['namaMateri'] == materiName) {
+          var subMateriList = materi['subMateri'] as List;
 
-      // Check if materi is accessible (either first materi or previous materi is completed)
-      bool isMateriAccessible = (materiIndex == 0) || (dataMateri[materiIndex - 1]['isDoneMateri'] == true);
-
-      if (!isMateriAccessible) {
-        // If the materi itself is not accessible, skip to next materi
-        continue;
-      }
-
-      // Find the first incomplete subMateri in this materi
-      for (int subIndex = 0; subIndex < subMateriList.length; subIndex++) {
-        var subMateri = subMateriList[subIndex];
-
-        // Check if this subMateri is accessible (either first subMateri or previous one is done)
-        bool isSubMateriAccessible = (subIndex == 0) || (subMateriList[subIndex - 1]['isDone'] == true);
-
-        if (!isSubMateriAccessible) {
-          // If the subMateri is not accessible, stop looking in this materi
+          for (var subMateri in subMateriList) {
+            if (subMateri['nama'] == subMateriName) {
+              contentToNavigate = subMateri['isiMateri'] as String?;
+              titleToNavigate = subMateri['nama'] as String?;
+              break;
+            }
+          }
           break;
-        }
-
-        if (subMateri['isDone'] == false) {
-          firstAccessibleContent = subMateri['isiMateri'] as String?;
-          firstAccessibleTitle = subMateri['nama'] as String?;
-          foundFirstIncomplete = true;
-          break;
-        } else {
-          // Track the last completed content
-          lastCompletedContent = subMateri['isiMateri'] as String?;
-          lastCompletedTitle = subMateri['nama'] as String?;
-        }
-      }
-
-      if (foundFirstIncomplete) break;
-
-      // If this materi was completed, update last completed content to the ujianAkhir of this materi
-      if (materi['isDoneMateri'] == true) {
-        // The last subMateri in the list should be the ujianAkhir
-        if (subMateriList.isNotEmpty) {
-          var lastSubMateri = subMateriList.last;
-          lastCompletedContent = lastSubMateri['isiMateri'] as String?;
-          lastCompletedTitle = lastSubMateri['nama'] as String?;
         }
       }
     }
 
-    // If no incomplete content was found, navigate to the last completed content
-    String? contentToNavigate = foundFirstIncomplete ? firstAccessibleContent : lastCompletedContent;
-    String? titleToNavigate = foundFirstIncomplete ? firstAccessibleTitle : lastCompletedTitle ?? 'Prasyarat Kemampuan';
+    // If no specific content was found, try to find the last completed content
+    if (contentToNavigate == null) {
+      // Find the last completed content
+      for (int materiIndex = dataMateri.length - 1; materiIndex >= 0; materiIndex--) {
+        var materi = dataMateri[materiIndex];
+        var subMateriList = materi['subMateri'] as List;
+
+        for (int subIndex = subMateriList.length - 1; subIndex >= 0; subIndex--) {
+          var subMateri = subMateriList[subIndex];
+          String materiName = materi['namaMateri'];
+          String subMateriName = subMateri['nama'];
+
+          bool isCompleted = await ProgressTrackingService.getSubMateriProgress(
+            materiName: materiName,
+            subMateriName: subMateriName,
+          );
+
+          if (isCompleted) {
+            contentToNavigate = subMateri['isiMateri'] as String?;
+            titleToNavigate = subMateri['nama'] as String?;
+            break;
+          }
+        }
+
+        if (contentToNavigate != null) break;
+      }
+    }
 
     Navigator.pushReplacement(
       context,

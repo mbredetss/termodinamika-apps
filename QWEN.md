@@ -9,6 +9,7 @@ NOTE:
 - Design tampilan yang konsisten disemua screen sesuai dengan pengalamanmu sebagai mobile/web frontend & UI UX expert berpengalaman selama 20tahun.
 - Gunakan UI Library: Get Widget dalam mendesign aplikasi
 - Jika Anda membuat Widget, letakkan codenya di folder /components dari root main module.
-- Jika ada fungsi yang ingin Anda buat, letakkan di folder /services (buat kalau tidak ada) dari root main module.
-- Jika ada screen baru, buat codenya di folder /lib/screen
-- Gunakan perintah flutter add {nama package yang ingin dinstall} untuk menambahkan dependensi
+- Pisahkan code widget/tampilan dengan fungsi. lalu, Jika ada fungsi yang ingin Anda buat, letakkan di folder /services (buat kalau tidak ada) dari root main module.
+- Jika ada screen baru, buat codenya di folder /lib/screens
+- Gunakan perintah flutter add {nama package yang ingin dinstall} untuk menambahkan dependensi.
+Untuk root main module saya bakalan berikan di chat.

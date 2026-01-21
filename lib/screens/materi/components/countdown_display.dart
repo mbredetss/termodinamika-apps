@@ -30,12 +30,14 @@ class CountdownDisplay extends StatelessWidget {
             size: 18,
           ),
           const SizedBox(width: 8),
-          Text(
-            'Silahkan tunggu untuk mengambil soal latihan ulang: ${formatCountdownTime(remainingCooldownTime)}',
-            style: const TextStyle(
-              fontFamily: 'StackSansText',
-              fontSize: 14,
-              color: Color(0xFF303F9F), // Deep Indigo color
+          Flexible(
+            child: Text(
+              'Silahkan tunggu untuk mengambil soal latihan ulang: ${formatCountdownTime(remainingCooldownTime)}',
+              style: const TextStyle(
+                fontFamily: 'StackSansText',
+                fontSize: 14,
+                color: Color(0xFF303F9F), // Deep Indigo color
+              ),
             ),
           ),
         ],

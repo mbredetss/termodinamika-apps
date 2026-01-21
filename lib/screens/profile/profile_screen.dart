@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../materi/components/materi_data.dart';
 import '../../services/storage_service.dart';
-import '../../services/platform_storage_service.dart';
 import '../../services/streak_service.dart';
+import '../../services/progress_tracking_service.dart';
 import '../home/components/background_wrapper.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -52,56 +52,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _calculateStatistics() async {
-    // First load the stored progress to ensure dataMateri is up-to-date
-    List<Map<String, dynamic>>? savedData = await StorageService.loadProgress();
-    if (savedData != null && savedData.isNotEmpty) {
-      // Update the global dataMateri with saved progress
-      for (int i = 0; i < dataMateri.length && i < savedData.length; i++) {
-        var savedMateri = savedData[i];
-        if (savedMateri.containsKey('isDoneMateri')) {
-          dataMateri[i]['isDoneMateri'] = savedMateri['isDoneMateri'] ?? false;
-        }
-
-        var savedSubMateriList = savedMateri['subMateri'] as List?;
-        var currentSubMateriList = dataMateri[i]['subMateri'] as List?;
-
-        if (savedSubMateriList != null && currentSubMateriList != null) {
-          for (
-            int j = 0;
-            j < currentSubMateriList.length && j < savedSubMateriList.length;
-            j++
-          ) {
-            var savedSubMateri = savedSubMateriList[j] as Map<String, dynamic>?;
-            if (savedSubMateri != null &&
-                savedSubMateri.containsKey('isDone')) {
-              currentSubMateriList[j]['isDone'] =
-                  savedSubMateri['isDone'] ?? false;
-            }
-          }
-        }
-      }
-    }
-
-    // Calculate total and completed materi
+    // Calculate total and completed materi using the new progress tracking service
     _totalMateri = 0;
     _completedMateri = 0;
+    _passedEssays = 0;
 
     for (var materi in dataMateri) {
+      String materiName = materi['namaMateri'];
       var subMateriList = materi['subMateri'] as List;
       _totalMateri += subMateriList.length;
 
+      // Count completed sub-materi for this materi
+      int completedSubMateriForThisMateri = 0;
       for (var subMateri in subMateriList) {
-        if (subMateri['isDone'] == true) {
+        String subMateriName = subMateri['nama'];
+        bool isCompleted = await ProgressTrackingService.getSubMateriProgress(
+          materiName: materiName,
+          subMateriName: subMateriName,
+        );
+        if (isCompleted) {
           _completedMateri++;
+          completedSubMateriForThisMateri++;
         }
       }
-    }
 
-    // Calculate passed essays - count how many 'isDoneMateri' are true in dataMateri
-    // This now correctly uses the data loaded from storage
-    _passedEssays = 0;
-    for (var materi in dataMateri) {
-      if (materi['isDoneMateri'] == true) {
+      // If all sub-materi in this materi are completed, increment passed essays
+      if (completedSubMateriForThisMateri == subMateriList.length) {
         _passedEssays++;
       }
     }

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:termodinamika_apps/services/cooldown_service.dart';
-import 'package:termodinamika_apps/services/platform_storage_service.dart';
+import 'package:termodinamika_apps/services/progress_tracking_service.dart';
 import 'quiz_progress_service.dart';
 
 class QuizCompletionService {
@@ -26,31 +26,8 @@ class QuizCompletionService {
 
     // If the quiz was passed, update the materi's isDoneMateri to true and quiz subMateri's isDone status
     if (isPassed && materiName != null) {
-      for (var materi in materiList) {
-        if (materi['namaMateri'] == materiName) {
-          // Update the materi's completion status
-          materi['isDoneMateri'] = true;
-
-          // Find and update the quiz subMateri's isDone status
-          var subMateriList = materi['subMateri'] as List;
-          for (int i = 0; i < subMateriList.length; i++) {
-            var subMateri = subMateriList[i];
-            String subMateriName = subMateri['nama'] as String;
-
-            // Update isDone status for the quiz/latihan soal subMateri
-            if (subMateriName.toLowerCase().contains('latihan soal') ||
-                subMateriName.toLowerCase().contains('ujian')) {
-              subMateriList[i]['isDone'] = true;
-              break; // Exit after updating the quiz subMateri
-            }
-          }
-
-          break;
-        }
-      }
-
-      // Save the updated progress
-      StorageService.saveProgress(materiList);
+      // Mark the quiz as passed, which will update all related sub-materi as completed
+      ProgressTrackingService.markQuizAsPassed(materiName);
     }
 
     // Clear the saved quiz progress as the quiz is completed

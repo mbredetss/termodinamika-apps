@@ -12,8 +12,9 @@ import 'components/warning_modal.dart';
 import 'components/countdown_display.dart';
 import 'components/start_quiz_button.dart';
 import '../latihan_soal/latihan_soal_screen.dart';
-import '../../services/platform_storage_service.dart';
 import '../../services/cooldown_service.dart';
+import '../../services/progress_tracking_service.dart';
+import '../../services/learning_path_service.dart';
 
 class MateriScreen extends StatefulWidget {
   final String? initialContent;
@@ -107,32 +108,28 @@ class _MateriScreenState extends State<MateriScreen> {
 
   // Load saved progress using platform-specific storage
   Future<void> _loadSavedProgress() async {
-    List<Map<String, dynamic>>? savedData = await StorageService.loadProgress();
-    if (savedData != null && savedData.isNotEmpty) {
-      // Update the global dataMateri with saved progress
-      for (int i = 0; i < dataMateri.length && i < savedData.length; i++) {
-        var savedMateri = savedData[i];
-        if (savedMateri.containsKey('isDoneMateri')) {
-          dataMateri[i]['isDoneMateri'] = savedMateri['isDoneMateri'] ?? false;
-        }
+    // Load progress using the new progress tracking service
+    // This method now initializes the UI based on stored progress
+    for (var materi in dataMateri) {
+      String materiName = materi['namaMateri'];
+      var subMateriList = materi['subMateri'] as List;
 
-        var savedSubMateriList = savedMateri['subMateri'] as List?;
-        var currentSubMateriList = dataMateri[i]['subMateri'] as List?;
+      for (var subMateri in subMateriList) {
+        String subMateriName = subMateri['nama'];
+        bool isCompleted = await ProgressTrackingService.getSubMateriProgress(
+          materiName: materiName,
+          subMateriName: subMateriName,
+        );
 
-        if (savedSubMateriList != null && currentSubMateriList != null) {
-          for (int j = 0; j < currentSubMateriList.length && j < savedSubMateriList.length; j++) {
-            var savedSubMateri = savedSubMateriList[j] as Map<String, dynamic>?;
-            if (savedSubMateri != null && savedSubMateri.containsKey('isDone')) {
-              currentSubMateriList[j]['isDone'] = savedSubMateri['isDone'] ?? false;
-            }
-          }
-        }
+        // Update the in-memory data structure to reflect the saved progress
+        // This is needed for the UI to display the correct state
+        subMateri['isDone'] = isCompleted;
       }
     }
   }
 
   // Navigate to the previous subMateri
-  void goToPreviousSubMateri() {
+  Future<void> goToPreviousSubMateri() async {
     var currentIndex = findSubMateriIndex(currentContent);
     if (currentIndex == null) return;
 
@@ -144,17 +141,21 @@ class _MateriScreenState extends State<MateriScreen> {
     // Try to go to the previous subMateri in the same materi
     if (currentSubMateriIndex > 0) {
       var prevSubMateri = currentSubMateriList[currentSubMateriIndex - 1];
+      // Update the current subMateri status to done before navigating (but not for the quiz)
+      var currentSubMateri = currentSubMateriList[currentSubMateriIndex];
+      String currentSubMateriNameTemp = currentSubMateri['nama'] as String;
+
+      // Only update progress if it's not a quiz/latihan soal
+      if (!currentSubMateriNameTemp.toLowerCase().contains('latihan soal') &&
+          !currentSubMateriNameTemp.toLowerCase().contains('ujian')) {
+        ProgressTrackingService.saveSubMateriProgress(
+          materiName: currentMateri['namaMateri'],
+          subMateriName: currentSubMateriNameTemp,
+          isCompleted: true,
+        );
+      }
+
       setState(() {
-        // Update the current subMateri status to done before navigating (but not for the quiz)
-        var currentSubMateri = currentSubMateriList[currentSubMateriIndex];
-        String currentSubMateriName = currentSubMateri['nama'] as String;
-
-        // Only update isDone if it's not a quiz/latihan soal
-        if (!currentSubMateriName.toLowerCase().contains('latihan soal') &&
-            !currentSubMateriName.toLowerCase().contains('ujian')) {
-          currentMateri['subMateri'][currentSubMateriIndex]['isDone'] = true;
-        }
-
         currentContent = prevSubMateri['isiMateri'] as String;
         currentSubMateriName = prevSubMateri['nama'] as String;
         bottomAppBarTitle = currentSubMateriName;
@@ -163,8 +164,6 @@ class _MateriScreenState extends State<MateriScreen> {
         // Change the key to force rebuild of Markdown widget and reset scroll
         _markdownKey = Key('${currentContent.hashCode}');
       });
-      // Save progress after updating isDone status
-      _saveProgress();
       // Check quiz availability for the new content
       checkQuizAvailability();
     }
@@ -174,13 +173,15 @@ class _MateriScreenState extends State<MateriScreen> {
       var currentSubMateri = currentSubMateriList[currentSubMateriIndex];
       String currentSubMateriName = currentSubMateri['nama'] as String;
 
-      // Only update isDone if it's not a quiz/latihan soal
+      // Only update progress if it's not a quiz/latihan soal
       if (!currentSubMateriName.toLowerCase().contains('latihan soal') &&
           !currentSubMateriName.toLowerCase().contains('ujian')) {
-        currentMateri['subMateri'][currentSubMateriIndex]['isDone'] = true;
+        ProgressTrackingService.saveSubMateriProgress(
+          materiName: currentMateri['namaMateri'],
+          subMateriName: currentSubMateriName,
+          isCompleted: true,
+        );
       }
-      // Save progress after updating isDone status
-      _saveProgress();
 
       // Find the previous materi that has subMateri
       int prevMateriIndex = currentMateriIndex - 1;
@@ -209,11 +210,13 @@ class _MateriScreenState extends State<MateriScreen> {
 
   // Save progress using platform-specific storage
   Future<void> _saveProgress() async {
-    await StorageService.saveProgress(dataMateri);
+    // Save progress using the new progress tracking service
+    // This method is kept for compatibility but the new service handles saving automatically
+    // when progress is updated
   }
 
   // Navigate to the next subMateri
-  void goToNextSubMateri() {
+  Future<void> goToNextSubMateri() async {
     var currentIndex = findSubMateriIndex(currentContent);
     if (currentIndex == null) return;
 
@@ -222,8 +225,8 @@ class _MateriScreenState extends State<MateriScreen> {
     var currentMateri = dataMateri[currentMateriIndex];
     var currentSubMateriList = currentMateri['subMateri'] as List;
 
-    // Check if we are at the last subMateri (latihan soal)
-    if (currentSubMateriIndex == currentSubMateriList.length - 1) {
+    // Check if we are at the last subMateri (latihan soal) in the final evaluation
+    if (currentMateri['namaMateri'] == 'Evaluasi Akhir' && currentSubMateriIndex == currentSubMateriList.length - 1) {
       // Check if this last subMateri is the latihan soal (ujian)
       var lastSubMateri = currentSubMateriList[currentSubMateriIndex];
       String lastSubMateriName = lastSubMateri['nama'] as String;
@@ -276,17 +279,21 @@ class _MateriScreenState extends State<MateriScreen> {
     // Try to go to the next subMateri in the same materi
     if (currentSubMateriIndex < currentSubMateriList.length - 1) {
       var nextSubMateri = currentSubMateriList[currentSubMateriIndex + 1];
+      // Update the current subMateri status to done before navigating (but not for the quiz)
+      var currentSubMateri = currentSubMateriList[currentSubMateriIndex];
+      String currentSubMateriNameTemp = currentSubMateri['nama'] as String;
+
+      // Only update progress if it's not a quiz/latihan soal
+      if (!currentSubMateriNameTemp.toLowerCase().contains('latihan soal') &&
+          !currentSubMateriNameTemp.toLowerCase().contains('ujian')) {
+        ProgressTrackingService.saveSubMateriProgress(
+          materiName: currentMateri['namaMateri'],
+          subMateriName: currentSubMateriNameTemp,
+          isCompleted: true,
+        );
+      }
+
       setState(() {
-        // Update the current subMateri status to done before navigating (but not for the quiz)
-        var currentSubMateri = currentSubMateriList[currentSubMateriIndex];
-        String currentSubMateriName = currentSubMateri['nama'] as String;
-
-        // Only update isDone if it's not a quiz/latihan soal
-        if (!currentSubMateriName.toLowerCase().contains('latihan soal') &&
-            !currentSubMateriName.toLowerCase().contains('ujian')) {
-          currentMateri['subMateri'][currentSubMateriIndex]['isDone'] = true;
-        }
-
         currentContent = nextSubMateri['isiMateri'] as String;
         currentSubMateriName = nextSubMateri['nama'] as String;
         bottomAppBarTitle = currentSubMateriName;
@@ -295,8 +302,6 @@ class _MateriScreenState extends State<MateriScreen> {
         // Change the key to force rebuild of Markdown widget and reset scroll
         _markdownKey = Key('${currentContent.hashCode}');
       });
-      // Save progress after updating isDone status
-      _saveProgress();
       // Check quiz availability for the new content
       checkQuizAvailability();
     }
@@ -304,49 +309,50 @@ class _MateriScreenState extends State<MateriScreen> {
     else if (currentMateriIndex < dataMateri.length - 1) {
       // Update the current subMateri status to done before navigating (but not for the quiz)
       var currentSubMateri = currentSubMateriList[currentSubMateriIndex];
-      String currentSubMateriName = currentSubMateri['nama'] as String;
+      String currentSubMateriNameTemp = currentSubMateri['nama'] as String;
 
-      // Only update isDone if it's not a quiz/latihan soal
-      if (!currentSubMateriName.toLowerCase().contains('latihan soal') &&
-          !currentSubMateriName.toLowerCase().contains('ujian')) {
-        currentMateri['subMateri'][currentSubMateriIndex]['isDone'] = true;
+      // Only update progress if it's not a quiz/latihan soal
+      if (!currentSubMateriNameTemp.toLowerCase().contains('latihan soal') &&
+          !currentSubMateriNameTemp.toLowerCase().contains('ujian')) {
+        ProgressTrackingService.saveSubMateriProgress(
+          materiName: currentMateri['namaMateri'],
+          subMateriName: currentSubMateriNameTemp,
+          isCompleted: true,
+        );
       }
-      // Save progress after updating isDone status
-      _saveProgress();
 
-      // Check if the current materi is completed before allowing navigation to the next one
-      if (isMateriCompleted(currentMateriIndex)) {
-        // Find the next materi that has subMateri
-        int nextMateriIndex = currentMateriIndex + 1;
-        while (nextMateriIndex < dataMateri.length) {
-          // Check if the next materi is available to access (previous materi isDoneMateri = true)
-          if (dataMateri[nextMateriIndex - 1]['isDoneMateri'] == true || nextMateriIndex == currentMateriIndex + 1) {
-            var subMateriList = dataMateri[nextMateriIndex]['subMateri'] as List;
-            if (subMateriList.isNotEmpty) {
-              var firstSubMateri = subMateriList[0];
-              setState(() {
-                currentContent = firstSubMateri['isiMateri'] as String;
-                currentSubMateriName = firstSubMateri['nama'] as String;
-                bottomAppBarTitle = currentSubMateriName;
-                // Remove the active search keyword when navigating manually
-                _activeSearchKeyword = '';
-                // Change the key to force rebuild of Markdown widget and reset scroll
-                _markdownKey = Key('${currentContent.hashCode}');
-              });
-              // Check quiz availability for the new content
-              checkQuizAvailability();
-              break;
-            }
-          } else {
-            // Show warning that previous materi is not completed
-            showMateriPrerequisiteWarning();
+      // Find the next materi that has subMateri
+      int nextMateriIndex = currentMateriIndex + 1;
+      while (nextMateriIndex < dataMateri.length) {
+        // Check if the next materi is accessible based on learning path
+        bool isAccessible = await LearningPathService.canAccessSubMateri(
+          materiName: dataMateri[nextMateriIndex]['namaMateri'],
+          subMateriName: (dataMateri[nextMateriIndex]['subMateri'] as List)[0]['nama'],
+        );
+
+        if (isAccessible) {
+          var subMateriList = dataMateri[nextMateriIndex]['subMateri'] as List;
+          if (subMateriList.isNotEmpty) {
+            var firstSubMateri = subMateriList[0];
+            setState(() {
+              currentContent = firstSubMateri['isiMateri'] as String;
+              currentSubMateriName = firstSubMateri['nama'] as String;
+              bottomAppBarTitle = currentSubMateriName;
+              // Remove the active search keyword when navigating manually
+              _activeSearchKeyword = '';
+              // Change the key to force rebuild of Markdown widget and reset scroll
+              _markdownKey = Key('${currentContent.hashCode}');
+            });
+            // Check quiz availability for the new content
+            checkQuizAvailability();
             break;
           }
-          nextMateriIndex++;
+        } else {
+          // Show warning that the next materi is not accessible yet
+          showMateriPrerequisiteWarning();
+          break;
         }
-      } else {
-        // Show warning modal if the current materi is not completed
-        showPrerequisiteWarning();
+        nextMateriIndex++;
       }
     }
   }
@@ -452,8 +458,8 @@ class _MateriScreenState extends State<MateriScreen> {
               CountdownDisplay(
                 remainingCooldownTime: _remainingCooldownTime,
               ),
-            // Show the "Mulai" button if this is the last subMateri in the current materi and quiz is available
-            if (isLastSubMateri() && _isQuizAvailable)
+            // Show the "Mulai" button if this is the last subMateri in the final evaluation materi and quiz is available
+            if (isLastSubMateri() && _isQuizAvailable && isFinalEvaluation())
               StartQuizButton(
                 onPressed: () {
                   showUjianModal();
@@ -493,16 +499,17 @@ class _MateriScreenState extends State<MateriScreen> {
                   textAlign: TextAlign.center,
                 ),
               ),
-              IconButton(
-                icon: const Icon(
-                  Icons.arrow_forward_ios,
-                  color: Color(0xFF555555), // Dark gray
-                  size: 18,
+              if (!isLastSubMateri())
+                IconButton(
+                  icon: const Icon(
+                    Icons.arrow_forward_ios,
+                    color: Color(0xFF555555), // Dark gray
+                    size: 18,
+                  ),
+                  onPressed: () {
+                    goToNextSubMateri();
+                  },
                 ),
-                onPressed: () {
-                  goToNextSubMateri();
-                },
-              ),
             ],
           ),
         ),
@@ -520,21 +527,62 @@ class _MateriScreenState extends State<MateriScreen> {
     var currentMateri = dataMateri[currentMateriIndex];
     var currentSubMateriList = currentMateri['subMateri'] as List;
 
-    return currentSubMateriIndex == currentSubMateriList.length - 1;
+    // Check if this is the final evaluation materi
+    if (currentMateri['namaMateri'] == 'Evaluasi Akhir') {
+      return currentSubMateriIndex == currentSubMateriList.length - 1;
+    }
+
+    // For regular materi, check if it's the last subMateri and if it's the last materi in the list
+    bool isLastMateri = currentMateriIndex == dataMateri.length - 2; // -2 because the last one is the evaluation
+    return isLastMateri && currentSubMateriIndex == currentSubMateriList.length - 1;
+  }
+
+  // Check if the current subMateri is in the final evaluation section
+  bool isFinalEvaluation() {
+    var currentIndex = findSubMateriIndex(currentContent);
+    if (currentIndex == null) return false;
+
+    int currentMateriIndex = currentIndex.materiIndex;
+    var currentMateri = dataMateri[currentMateriIndex];
+
+    return currentMateri['namaMateri'] == 'Evaluasi Akhir';
   }
 
 
 
   // Check if the specified materi is completed (all subMateri done)
-  bool isMateriCompleted(int materiIndex) {
+  Future<bool> isMateriCompleted(int materiIndex) async {
     if (materiIndex < 0 || materiIndex >= dataMateri.length) return false;
 
     var materi = dataMateri[materiIndex];
     var subMateriList = materi['subMateri'] as List;
+    String materiName = materi['namaMateri'];
 
-    // Check if all subMateri in this materi are marked as done
+    // Special handling for the final evaluation materi
+    if (materiName == 'Evaluasi Akhir') {
+      // For the final evaluation, check if the quiz has been completed
+      for (var subMateri in subMateriList) {
+        String subMateriName = subMateri['nama'] as String;
+        if (subMateriName.toLowerCase().contains('latihan soal') ||
+            subMateriName.toLowerCase().contains('ujian')) {
+          bool isCompleted = await ProgressTrackingService.getSubMateriProgress(
+            materiName: materiName,
+            subMateriName: subMateriName,
+          );
+          return isCompleted;
+        }
+      }
+      return false;
+    }
+
+    // For other materi, check if all subMateri are completed
     for (var subMateri in subMateriList) {
-      if (subMateri['isDone'] == false) {
+      String subMateriName = subMateri['nama'] as String;
+      bool isCompleted = await ProgressTrackingService.getSubMateriProgress(
+        materiName: materiName,
+        subMateriName: subMateriName,
+      );
+      if (!isCompleted) {
         return false;
       }
     }
@@ -676,6 +724,7 @@ class _MateriScreenState extends State<MateriScreen> {
       materiName = dataMateri[currentIndex.materiIndex]['namaMateri'] as String?;
     }
 
+    // For the new structure, the quiz is only in the "Evaluasi Akhir" section
     if (materiName != null) {
       bool isInCooldown = await CooldownService.isInCooldown(materiName);
       if (isInCooldown) {
@@ -822,19 +871,35 @@ class _MateriScreenState extends State<MateriScreen> {
                       var currentIndex = findSubMateriIndex(currentContent);
                       if (currentIndex != null) {
                         var materi = dataMateri[currentIndex.materiIndex];
-                        var soalList = materi['soal'] as List?;
-                        if (soalList != null && soalList.isNotEmpty) {
-                          // Convert the list to a list of Map<String, dynamic>
-                          List<Map<String, dynamic>> typedSoalList =
-                              soalList.cast<Map<String, dynamic>>();
 
+                        // For the new structure, if we're in the final evaluation, get questions from there
+                        // Otherwise, we need to collect all questions from all materi
+                        List<Map<String, dynamic>> allQuestions = [];
+
+                        if (materi['namaMateri'] == 'Evaluasi Akhir') {
+                          // Get questions from the final evaluation section
+                          var soalList = materi['soal'] as List?;
+                          if (soalList != null && soalList.isNotEmpty) {
+                            allQuestions = soalList.cast<Map<String, dynamic>>();
+                          }
+                        } else {
+                          // Collect questions from all materi sections
+                          for (var materiSection in dataMateri) {
+                            var soalList = materiSection['soal'] as List?;
+                            if (soalList != null && soalList.isNotEmpty) {
+                              allQuestions.addAll(soalList.cast<Map<String, dynamic>>());
+                            }
+                          }
+                        }
+
+                        if (allQuestions.isNotEmpty) {
                           if (mounted) {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
                                 builder: (context) =>
                                     LatihanSoalScreen(
-                                      soalList: typedSoalList,
+                                      soalList: allQuestions,
                                       materiName: materi['namaMateri'] as String?,
                                       recordQuizAttempt: recordQuizAttempt,
                                     ),
@@ -979,6 +1044,17 @@ class _MateriScreenState extends State<MateriScreen> {
   bool isSubMateriAccessible(int materiIndex, int subMateriIndex) {
     // If it's the first subMateri of the first materi, it's always accessible
     if (materiIndex == 0 && subMateriIndex == 0) {
+      return true;
+    }
+
+    // Check if it's the final evaluation materi
+    if (materiIndex == dataMateri.length - 1 && dataMateri[materiIndex]['namaMateri'] == 'Evaluasi Akhir') {
+      // The final evaluation is accessible only when all other materi are completed
+      for (int i = 0; i < dataMateri.length - 1; i++) {
+        if (dataMateri[i]['isDoneMateri'] != true) {
+          return false;
+        }
+      }
       return true;
     }
 
