@@ -10,8 +10,8 @@ import 'components/module_list_screen.dart';
 import 'components/materi_data.dart';
 import 'components/warning_modal.dart';
 import 'components/countdown_display.dart';
-import 'components/start_quiz_button.dart';
 import '../latihan_soal/latihan_soal_screen.dart';
+import '../latihan_soal/services/quiz_history_service.dart';
 import '../../services/cooldown_service.dart';
 import '../../services/progress_tracking_service.dart';
 import '../../services/learning_path_service.dart';
@@ -36,6 +36,7 @@ class _MateriScreenState extends State<MateriScreen> {
   // Key to force rebuild of Markdown widget when content changes
   Key? _markdownKey;
   String _activeSearchKeyword = ''; // Track active search keyword for highlighting
+  List<Map<String, dynamic>> _quizHistory = [];
 
   @override
   void initState() {
@@ -55,6 +56,9 @@ class _MateriScreenState extends State<MateriScreen> {
 
     // Check if there's a cooldown for the current materi
     checkQuizAvailability();
+
+    // Load quiz history if this is the final evaluation
+    _loadQuizHistory();
   }
 
   @override
@@ -70,6 +74,8 @@ class _MateriScreenState extends State<MateriScreen> {
       // Change the key to force rebuild of Markdown widget and reset scroll
       _markdownKey = Key('${currentContent.hashCode}');
       checkQuizAvailability();
+      // Load quiz history if this is the final evaluation
+      _loadQuizHistory();
     }
   }
 
@@ -106,6 +112,22 @@ class _MateriScreenState extends State<MateriScreen> {
     return null;
   }
 
+  // Load quiz history for the current materi
+  Future<void> _loadQuizHistory() async {
+    var currentIndex = findSubMateriIndex(currentContent);
+    if (currentIndex != null) {
+      var materi = dataMateri[currentIndex.materiIndex];
+      String materiName = materi['namaMateri'];
+
+      if (materiName == 'Evaluasi Akhir') {
+        List<Map<String, dynamic>> history = await QuizHistoryService.getQuizHistory(materiName);
+        setState(() {
+          _quizHistory = history;
+        });
+      }
+    }
+  }
+
   // Load saved progress using platform-specific storage
   Future<void> _loadSavedProgress() async {
     // Load progress using the new progress tracking service
@@ -126,6 +148,195 @@ class _MateriScreenState extends State<MateriScreen> {
         subMateri['isDone'] = isCompleted;
       }
     }
+  }
+
+  // Build the history section as a widget for modal
+  Widget _buildHistoryWidget() {
+    if (_quizHistory.isEmpty) {
+      return const Center(
+        child: Text(
+          'Belum ada riwayat kuis',
+          style: TextStyle(
+            fontFamily: 'StackSansText',
+            fontSize: 16,
+            color: Color(0xFF616161), // Medium Grey
+          ),
+        ),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 16),
+        Container(
+          decoration: BoxDecoration(
+            border: Border.all(color: const Color(0xFFE0E0E0)), // Light grey border
+            borderRadius: BorderRadius.circular(8),
+          ),
+          child: Table(
+            columnWidths: const {
+              0: FlexColumnWidth(4), // Date column - increased width
+              1: FlexColumnWidth(2.5), // Percentage column - increased width
+              2: FlexColumnWidth(2.5), // Status column - increased width
+            },
+            children: [
+              // Header row
+              TableRow(
+                decoration: const BoxDecoration(
+                  color: Color(0xFFF5F5F5), // Very light grey background
+                ),
+                children: [
+                  _buildTableCell('Tanggal', isHeader: true),
+                  _buildTableCell('Persentase', isHeader: true),
+                  _buildTableCell('Status', isHeader: true),
+                ],
+              ),
+              // Data rows
+              ..._quizHistory.map((record) {
+                final isPassed = record['isPassed'] as bool;
+                return TableRow(
+                  children: [
+                    _buildTableCell(record['date'] as String),
+                    _buildTableCell('${record['percentage'].round()}%'),
+                    _buildStatusCell(isPassed),
+                  ],
+                );
+              }),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  // Build a table cell with value
+  Widget _buildTableCell(String value, {bool isHeader = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      child: Text(
+        value,
+        style: TextStyle(
+          fontFamily: 'StackSansText',
+          fontSize: 12,
+          fontWeight: isHeader ? FontWeight.bold : FontWeight.w500,
+          color: isHeader
+              ? const Color(0xFF424242) // Darker grey for headers
+              : const Color(0xFF212121), // Dark Grey for content
+        ),
+      ),
+    );
+  }
+
+  // Build the status cell with colored box
+  Widget _buildStatusCell(bool isPassed) {
+    Color backgroundColor = isPassed ? const Color(0xFFC8E6C9) : const Color(0xFFFFCDD2); // Light green for passed, light red for failed
+    Color borderColor = isPassed ? const Color(0xFF388E3C) : const Color(0xFFD32F2F); // Green for passed, red for failed
+    Color textColor = isPassed ? const Color(0xFF388E3C) : const Color(0xFFD32F2F); // Green for passed, red for failed
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        decoration: BoxDecoration(
+          color: backgroundColor,
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+            color: borderColor,
+            width: 1,
+          ),
+        ),
+        child: Text(
+          isPassed ? 'Lulus' : 'Belum Lulus',
+          style: TextStyle(
+            fontFamily: 'StackSansText',
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: textColor,
+          ),
+        ),
+      ),
+    );
+  }
+
+
+  // Show history modal
+  void showHistoryModal() {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return Dialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          insetPadding: const EdgeInsets.all(24), // Add padding from edges
+          child: Container(
+            padding: const EdgeInsets.all(24),
+            width: 800, // Increased width for larger screens
+            height: 600, // Added fixed height
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      'Riwayat Kuis',
+                      style: TextStyle(
+                        fontFamily: 'StackSansText',
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
+                        color: Color(0xFF212121), // Dark Grey
+                      ),
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.close,
+                        color: Color(0xFF9E9E9E), // Medium Grey
+                      ),
+                      onPressed: () {
+                        Navigator.of(context).pop();
+                      },
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 16),
+                Expanded( // Use expanded to fill available space
+                  child: SingleChildScrollView(
+                    child: _buildHistoryWidget(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF6D00), // Energetic Orange
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(24),
+                      ),
+                    ),
+                    child: const Text(
+                      'Tutup',
+                      style: TextStyle(
+                        fontFamily: 'StackSansText',
+                        fontSize: 16,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
   }
 
   // Navigate to the previous subMateri
@@ -458,12 +669,76 @@ class _MateriScreenState extends State<MateriScreen> {
               CountdownDisplay(
                 remainingCooldownTime: _remainingCooldownTime,
               ),
-            // Show the "Mulai" button if this is the last subMateri in the final evaluation materi and quiz is available
-            if (isLastSubMateri() && _isQuizAvailable && isFinalEvaluation())
-              StartQuizButton(
-                onPressed: () {
-                  showUjianModal();
-                },
+            // Show the "Mulai" and "Riwayat" buttons if this is the last subMateri in the final evaluation materi
+            if (isLastSubMateri() && isFinalEvaluation())
+              Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    // Show "Mulai" button only if quiz is available
+                    if (_isQuizAvailable)
+                      Expanded(
+                        flex: 1,
+                        child: GFButton(
+                          onPressed: () {
+                            showUjianModal();
+                          },
+                          text: 'Mulai',
+                          textStyle: const TextStyle(
+                            fontFamily: 'StackSansText',
+                            fontSize: 16,
+                            fontWeight: FontWeight.w500,
+                            color: Colors.white,
+                          ),
+                          color: const Color(0xFF303F9F), // Deep Indigo
+                          shape: GFButtonShape.pills,
+                          fullWidthButton: true,
+                        ),
+                      )
+                    // If quiz is not available, show a disabled version or hide the button
+                    else
+                      Expanded(
+                        flex: 1,
+                        child: Opacity(
+                          opacity: 0.5,
+                          child: GFButton(
+                            onPressed: () {}, // Empty callback to disable functionality
+                            text: 'Mulai',
+                            textStyle: const TextStyle(
+                              fontFamily: 'StackSansText',
+                              fontSize: 16,
+                              fontWeight: FontWeight.w500,
+                              color: Colors.white,
+                            ),
+                            color: const Color(0xFF303F9F), // Deep Indigo
+                            shape: GFButtonShape.pills,
+                            fullWidthButton: true,
+                          ),
+                        ),
+                      ),
+                    const SizedBox(width: 16), // Space between buttons
+                    // Riwayat button - always visible when in final evaluation
+                    Expanded(
+                      flex: 1,
+                      child: GFButton(
+                        onPressed: () {
+                          showHistoryModal();
+                        },
+                        text: 'Riwayat',
+                        textStyle: const TextStyle(
+                          fontFamily: 'StackSansText',
+                          fontSize: 16,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.white,
+                        ),
+                        color: const Color(0xFF651FFF), // Electric Violet
+                        shape: GFButtonShape.pills,
+                        fullWidthButton: true,
+                      ),
+                    ),
+                  ],
+                ),
               ),
           ],
         ),
@@ -476,16 +751,17 @@ class _MateriScreenState extends State<MateriScreen> {
           padding: const EdgeInsets.symmetric(horizontal: 16),
           child: Row(
             children: [
-              IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios,
-                  color: Color(0xFF555555), // Dark gray
-                  size: 18,
+              if (!isFirstSubMateri())
+                IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back_ios,
+                    color: Color(0xFF555555), // Dark gray
+                    size: 18,
+                  ),
+                  onPressed: () {
+                    goToPreviousSubMateri();
+                  },
                 ),
-                onPressed: () {
-                  goToPreviousSubMateri();
-                },
-              ),
               Expanded(
                 child: Text(
                   bottomAppBarTitle ?? 'Prasyarat Kemampuan',
@@ -517,7 +793,19 @@ class _MateriScreenState extends State<MateriScreen> {
     );
   }
 
-  // Check if the current subMateri is the last one in its materi
+  // Check if the current subMateri is the first one in the entire course
+  bool isFirstSubMateri() {
+    var currentIndex = findSubMateriIndex(currentContent);
+    if (currentIndex == null) return false;
+
+    int currentMateriIndex = currentIndex.materiIndex;
+    int currentSubMateriIndex = currentIndex.subMateriIndex;
+
+    // Check if this is the first materi and the first subMateri in that materi
+    return currentMateriIndex == 0 && currentSubMateriIndex == 0;
+  }
+
+  // Check if the current subMateri is the last one in the entire course
   bool isLastSubMateri() {
     var currentIndex = findSubMateriIndex(currentContent);
     if (currentIndex == null) return false;
@@ -527,14 +815,14 @@ class _MateriScreenState extends State<MateriScreen> {
     var currentMateri = dataMateri[currentMateriIndex];
     var currentSubMateriList = currentMateri['subMateri'] as List;
 
-    // Check if this is the final evaluation materi
+    // Check if this is the final evaluation materi and it's the last subMateri in that materi
     if (currentMateri['namaMateri'] == 'Evaluasi Akhir') {
       return currentSubMateriIndex == currentSubMateriList.length - 1;
     }
 
-    // For regular materi, check if it's the last subMateri and if it's the last materi in the list
-    bool isLastMateri = currentMateriIndex == dataMateri.length - 2; // -2 because the last one is the evaluation
-    return isLastMateri && currentSubMateriIndex == currentSubMateriList.length - 1;
+    // Return false if there are more materi after this one, regardless of sub-materi position
+    // This ensures the forward button appears for all sub-materi except the very last one
+    return false;
   }
 
   // Check if the current subMateri is in the final evaluation section
@@ -699,6 +987,9 @@ class _MateriScreenState extends State<MateriScreen> {
     });
     _remainingCooldownTime = 15 * 60; // 15 minutes in seconds
     startCountdown();
+
+    // Reload the quiz history to show the updated records
+    _loadQuizHistory();
   }
 
   @override

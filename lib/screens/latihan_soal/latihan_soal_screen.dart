@@ -44,7 +44,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
     // Set the first question data and start timer after loading saved progress
     _loadAndStartTimer();
   }
-  
+
   // Load saved progress and then start timer with the correct time
   Future<void> _loadAndStartTimer() async {
     // Set the first question data
@@ -82,10 +82,10 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
     if (widget.materiName != null) {
       Map<String, dynamic>? savedProgress = await StorageService.loadQuizProgress(widget.materiName!);
       if (savedProgress != null) {
-        DateTime? expectedEndTime = savedProgress['_expectedEndTime'] != null 
-            ? DateTime.parse(savedProgress['_expectedEndTime']) 
+        DateTime? expectedEndTime = savedProgress['_expectedEndTime'] != null
+            ? DateTime.parse(savedProgress['_expectedEndTime'])
             : null;
-        
+
         // Update state values without calling setState here
         currentQuestionIndex = savedProgress['currentQuestionIndex'] ?? currentQuestionIndex;
         jawabanSiswa = savedProgress['jawabanSiswa'] ?? jawabanSiswa;
@@ -151,8 +151,12 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
   void dispose() {
     timerService.cancelTimer();
     _answerController.dispose();
-    // Save progress on dispose to ensure data is preserved if the app is closed
-    _saveProgress();
+    // Only save progress if the quiz is not completed (not at the last question or beyond)
+    // currentQuestionIndex starts at 0, so if it equals the length, the quiz is completed
+    if (currentQuestionIndex < widget.soalList.length - 1) {
+      // Save progress on dispose to ensure data is preserved if the app is closed
+      _saveProgress();
+    }
     super.dispose();
   }
 
@@ -198,8 +202,11 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
         });
       }
 
-      // Save progress after submitting an answer
-      _saveProgress();
+      // Only save progress if this is not the last question
+      // For the last question, we don't want to save progress as it will be cleared after quiz completion
+      if (currentQuestionIndex < widget.soalList.length - 1) {
+        _saveProgress();
+      }
 
       // Show result modal
       _showAnswerFeedbackModal(explain, isCorrect);
@@ -248,6 +255,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
           startTimer();
         } else {
           // All questions answered, show final results
+          // Don't save progress here as we're about to clear it in _showFinalResult anyway
           _showFinalResult();
         }
       },
@@ -268,11 +276,23 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
       context: context,
       correctAnswers: correctAnswers,
       totalQuestions: widget.soalList.length,
-      onFinished: () {
+      onFinished: () async {
         widget.recordQuizAttempt!(widget.materiName!);
+        // Refresh the quiz history after completing the quiz
+
+        // Clear the saved progress when quiz is completed so user starts from beginning when retaking
+        await _clearSavedProgress();
+
         Navigator.of(context).pop(); // Close modal
       },
     );
+  }
+
+  // Clear saved quiz progress
+  Future<void> _clearSavedProgress() async {
+    if (widget.materiName != null) {
+      await StorageService.clearQuizProgressForMateri(widget.materiName!);
+    }
   }
 
   @override
@@ -377,6 +397,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
                   const SizedBox(height: 24),
                   // Submit button
                   SubmitButton(onSubmit: _showConfirmationModal, isLoading: isLoading),
+                  const SizedBox(height: 24),
                 ],
               ),
             ),

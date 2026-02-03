@@ -8,7 +8,7 @@ Kuis ini bertujuan untuk menguji pengetahuan Anda tentang materi Termodinamika y
 
 Terdapat 10 pertanyaan yang harus dikerjakan dalam soal latihan ini. Beberapa ketentuannya sebagai berikut:
 - Syarat kelulusan : minimal harus menjawab 8 soal dengan benar
-- Durasi ujian : 3-7 menit / soal
+- Durasi ujian : 10-15 menit / soal
 
 Apabila tidak memenuhi syarat kelulusan, maka Anda harus menunggu selama 15 menit untuk mengulang pengerjaan latihan soal kembali. Manfaatkan waktu tunggu tersebut untuk mempelajari kembali materi sebelumnya, ya.
 
@@ -590,7 +590,7 @@ E_k = 7{,}48 \times 10^6\ \text{J}
       }, 
       {
         'isiSoal':
-            '7.	Mengapa energi dalam suatu sistem dapat berubah ketika sistem menerima kalor atau melakukan usaha? Jelaskan berdasarkan Hukum I Termodinamika.',
+            'Mengapa energi dalam suatu sistem dapat berubah ketika sistem menerima kalor atau melakukan usaha? Jelaskan berdasarkan Hukum I Termodinamika.',
         'kunciJawaban':
             'Energi dalam suatu sistem bisa berubah karena adanya perpindahan energi, baik dalam bentuk kalor maupun usaha. Sesuai Hukum I Termodinamika, ΔU = Q − W, jika sistem menerima kalor (Q positif) atau dilakukan kerja pada sistem (W negatif), maka energi dalamnya akan bertambah. Sebaliknya, jika sistem melepaskan kalor atau melakukan kerja, energi dalamnya akan berkurang. Jadi, perubahan energi dalam selalu merupakan akibat dari perpindahan kalor dan usaha.',
 	'soalKategori': '', 

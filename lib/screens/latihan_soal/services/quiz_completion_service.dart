@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:termodinamika_apps/services/cooldown_service.dart';
 import 'package:termodinamika_apps/services/progress_tracking_service.dart';
 import 'quiz_progress_service.dart';
+import 'quiz_history_service.dart';
 
 class QuizCompletionService {
   /// Handles quiz completion logic, including updating progress and saving cooldown
@@ -19,6 +20,13 @@ class QuizCompletionService {
         Duration(minutes: 15),
       ); // 15 minutes from now
       CooldownService.saveCooldown(materiName, cooldownEndTime);
+
+      // Record the quiz attempt in history
+      QuizHistoryService.recordQuizAttempt(
+        materiName: materiName,
+        correctAnswers: correctAnswers,
+        totalQuestions: totalQuestions,
+      );
     }
 
     double scorePercentage = (correctAnswers / totalQuestions) * 100;
