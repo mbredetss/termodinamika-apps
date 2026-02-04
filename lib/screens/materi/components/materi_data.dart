@@ -780,7 +780,7 @@ Perubahan energi dalam gas adalah
       }, 
       {
         'isiSoal':
-            '16.	Sebuah mesin kalor menerima 800 J kalor dan membuang 300 J. Hitung efisiensinya!',
+            'Sebuah mesin kalor menerima 800 J kalor dan membuang 300 J. Hitung efisiensinya!',
         'kunciJawaban':
             r'''
 **Diketahui:**
