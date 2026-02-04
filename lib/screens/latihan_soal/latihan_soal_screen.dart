@@ -213,9 +213,19 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
     } catch (e) {
       // Handle error
       debugPrint('Error: ${e.toString()}');
+
+      // Check if the error is related to quota exceeded
+      String errorMessage = 'Terjadi Error, silahkan kirim jawaban lagi';
+      if (e.toString().toLowerCase().contains('quota') ||
+          e.toString().toLowerCase().contains('rate limit') ||
+          e.toString().toLowerCase().contains('exceeded')) {
+        errorMessage = 'Sistem sedang sibuk. Silakan coba lagi nanti.';
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Terjadi Error, silahkan kirim jawaban lagi')),
+        SnackBar(content: Text(errorMessage)),
       );
+
       // Restart timer in case of error with the current time remaining
       startTimer();
     } finally {
@@ -305,7 +315,7 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
         if (questionText.contains('Perhatikan grafik PV (isotermal). Analisis mengapa kurva berbentuk hiperbola!')) {
           // Return the path to the PV graph image
           // Using an existing image that might represent a PV diagram
-          return 'assets/images/Aspose.Words.80cb3db8-0c0b-47fa-b3da-9e97ba6eb5fa.001.png';
+          return 'assets/images/Aspose.Words.74c2c7e1-c439-44b4-8b27-66b469c5eeeb.025.png';
         }
       }
     }

@@ -8,11 +8,16 @@ class ApiService {
     required String answerKey,
     required String studentAnswer,
   }) async {
-    return await prompting(
-      apiKey: apiKey,
-      question: question,
-      kunciJawaban: answerKey,
-      jawabanSiswa: studentAnswer,
-    );
+    try {
+      return await prompting(
+        apiKey: apiKey,
+        question: question,
+        kunciJawaban: answerKey,
+        jawabanSiswa: studentAnswer,
+      );
+    } catch (e) {
+      // Re-throw the exception so it can be caught by the calling code
+      rethrow;
+    }
   }
 }

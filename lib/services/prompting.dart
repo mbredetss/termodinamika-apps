@@ -9,25 +9,37 @@ String removeCodeWrapper(String str) {
       .trim();
 }
 
-/// Fungsi utama untuk memanggil model Gemini
+/// List of available models in priority order
+const List<String> _availableModels = [
+  'gemini-3-flash-preview',
+  'gemini-2.5-flash',
+  'gemini-2.5-flash-lite',
+];
+
+/// Fungsi utama untuk memanggil model Gemini dengan fallback ke model lain jika terjadi kuota habis
 Future<Map<String, dynamic>> prompting({
   required String apiKey,
   required String question,
   required String kunciJawaban,
   required String jawabanSiswa,
 }) async {
-  // Inisialisasi model
-  final model = GenerativeModel(
-    model: 'gemini-2.5-flash',
-    apiKey: apiKey,
-  );
+  String lastError = '';
 
-  // Buat prompt seperti di versi JS
-  final prompt = '''
-Kamu adalah seorang guru yang mengevaluasi jawaban esai yang ahli mengenai Termodinamika. 
-Terdapat soal mengenai termodinamika berikut: $question. 
+  // Try each model in sequence until one succeeds or all fail
+  for (String modelId in _availableModels) {
+    try {
+      // Inisialisasi model
+      final model = GenerativeModel(
+        model: modelId,
+        apiKey: apiKey,
+      );
+
+      // Buat prompt seperti di versi JS
+      final prompt = '''
+Kamu adalah seorang guru yang mengevaluasi jawaban esai yang ahli mengenai Termodinamika.
+Terdapat soal mengenai termodinamika berikut: $question.
 Kunci jawaban: $kunciJawaban.
-Jawaban siswa: $jawabanSiswa. 
+Jawaban siswa: $jawabanSiswa.
 
 Berikan:
 1. Apakah jawaban siswa benar/salah berdasarkan kunci jawaban tersebut.
@@ -40,23 +52,44 @@ Kembalikan dalam bentuk objek javascript dengan format berikut ini:
 }
 ''';
 
-  // Kirim ke API
-  final response = await model.generateContent([
-    Content.text(prompt),
-  ]);
+      // Kirim ke API
+      final response = await model.generateContent([
+        Content.text(prompt),
+      ]);
 
-  final textResponse = response.text ?? '';
+      final textResponse = response.text ?? '';
 
-  // Bersihkan output dari code fence
-  final clean = removeCodeWrapper(textResponse);
+      // Bersihkan output dari code fence
+      final clean = removeCodeWrapper(textResponse);
 
-  // Parse JSON dari hasil AI
-  final result = jsonDecode(clean);
+      // Parse JSON dari hasil AI
+      final result = jsonDecode(clean);
 
-  // Pastikan hasil berupa map
-  if (result is Map<String, dynamic>) {
-    return result;
-  } else {
-    throw Exception('Format hasil tidak sesuai');
+      // Pastikan hasil berupa map
+      if (result is Map<String, dynamic>) {
+        // Log which model was used successfully
+        print('Successfully used model: $modelId');
+        return result;
+      } else {
+        throw Exception('Format hasil tidak sesuai');
+      }
+    } catch (e) {
+      // Store the error message to potentially return later
+      lastError = e.toString();
+
+      // Check if the error is related to quota exceeded
+      if (e.toString().toLowerCase().contains('quota') ||
+          e.toString().toLowerCase().contains('rate limit') ||
+          e.toString().toLowerCase().contains('exceeded')) {
+        print('Model $modelId hit quota limit, trying next model...');
+        continue; // Try the next model
+      } else {
+        // If it's a different error, rethrow it
+        rethrow;
+      }
+    }
   }
+
+  // If all models failed due to quota, throw the last error
+  throw Exception('All models exceeded quota limits. Last error: $lastError');
 }
