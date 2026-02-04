@@ -5,6 +5,7 @@ class QuestionDisplay extends StatelessWidget {
   final String answerText;
   final ValueChanged<String> onAnswerChanged;
   final TextEditingController? controller;
+  final String? imageUrl;
 
   const QuestionDisplay({
     super.key,
@@ -12,6 +13,7 @@ class QuestionDisplay extends StatelessWidget {
     required this.answerText,
     required this.onAnswerChanged,
     this.controller,
+    this.imageUrl, // Optional image URL to display below the question
   });
 
   @override
@@ -60,6 +62,41 @@ class QuestionDisplay extends StatelessWidget {
                   ),
                 ),
               ),
+              // Display image below the question if imageUrl is provided
+              if (imageUrl != null && imageUrl!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: Container(
+                    width: double.maxFinite,
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        color: Color(0xFF1A237E), // Deep Indigo border
+                        width: 1,
+                      ),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.asset(
+                        imageUrl!,
+                        fit: BoxFit.contain,
+                        height: 200, // Set a reasonable height for the image
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            height: 200,
+                            width: double.maxFinite,
+                            color: Colors.grey[300],
+                            child: const Icon(
+                              Icons.image_not_supported,
+                              size: 60,
+                              color: Colors.grey,
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ),
+                ),
               const SizedBox(height: 24),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),

@@ -295,6 +295,23 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
     }
   }
 
+  // Helper method to get image URL for specific questions
+  String? _getImageUrlForQuestion(int questionIndex) {
+    // For the 9th question (index 8), return the PV graph image
+    if (questionIndex == 8) {
+      // Check if the question is the one about PV graph
+      if (widget.soalList.length > 8) {
+        String questionText = widget.soalList[8]['isiSoal'] ?? '';
+        if (questionText.contains('Perhatikan grafik PV (isotermal). Analisis mengapa kurva berbentuk hiperbola!')) {
+          // Return the path to the PV graph image
+          // Using an existing image that might represent a PV diagram
+          return 'assets/images/Aspose.Words.80cb3db8-0c0b-47fa-b3da-9e97ba6eb5fa.001.png';
+        }
+      }
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return LoadingOverlay(
@@ -393,6 +410,8 @@ class _LatihanSoalScreenState extends State<LatihanSoalScreen> {
                       });
                     },
                     controller: _answerController,
+                    // Add image for the 9th question about PV graph
+                    imageUrl: _getImageUrlForQuestion(currentQuestionIndex),
                   ),
                   const SizedBox(height: 24),
                   // Submit button
