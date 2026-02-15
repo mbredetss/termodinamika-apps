@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import '../materi/components/materi_data.dart';
 import '../../services/storage_service.dart';
 import '../../services/streak_service.dart';
@@ -30,24 +32,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _loadUserProfile() async {
-    String? savedName = await getStorageService().getItem('user_name');
-    String? savedAvatar = await getStorageService().getItem('user_avatar');
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+            
+        if (userDoc.exists) {
+          Map<String, dynamic>? userData = userDoc.data() as Map<String, dynamic>?;
+          String? userName = userData?['name'];
+          
+          if (userName != null && userName.isNotEmpty) {
+            setState(() {
+              _userName = userName;
+            });
+          }
 
-    if (savedName != null && savedName.isNotEmpty) {
-      setState(() {
-        _userName = savedName;
-      });
-    }
-
-    if (savedAvatar != null && savedAvatar.isNotEmpty) {
-      setState(() {
-        _userAvatar = savedAvatar;
-      });
-    } else {
-      // Set default avatar if none exists
-      setState(() {
-        _userAvatar = 'assets/images/avatar-1.png';
-      });
+          // Check if the avatar field exists in the document
+          if (userData != null && userData.containsKey('avatar')) {
+            String? userAvatar = userData['avatar'];
+            if (userAvatar != null && userAvatar.isNotEmpty) {
+              setState(() {
+                _userAvatar = userAvatar;
+              });
+              
+              // Also save to local storage for immediate use
+              await getStorageService().setItem('user_avatar', userAvatar);
+            } else {
+              // Set default avatar if none exists
+              setState(() {
+                _userAvatar = 'assets/images/avatar-1.png';
+              });
+            }
+          } else {
+            // Avatar field doesn't exist, set default
+            setState(() {
+              _userAvatar = 'assets/images/avatar-1.png';
+            });
+          }
+        }
+      }
+    } catch (e) {
+      print('Error loading user profile: $e');
     }
   }
 
@@ -164,15 +192,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
             ElevatedButton(
               onPressed: () async {
-                // Save the updated user profile to storage
-                await getStorageService().setItem(
-                  'user_name',
-                  nameController.text,
-                );
-                await getStorageService().setItem('user_avatar', _userAvatar);
-                setState(() {
-                  _userName = nameController.text;
-                });
+                try {
+                  User? user = FirebaseAuth.instance.currentUser;
+                  if (user != null) {
+                    // Update user data in Firestore
+                    await FirebaseFirestore.instance
+                        .collection('users')
+                        .doc(user.uid)
+                        .update({
+                      'name': nameController.text,
+                      'avatar': _userAvatar,
+                    });
+
+                    // Also save to local storage for immediate use
+                    await getStorageService().setItem(
+                      'user_name',
+                      nameController.text,
+                    );
+                    await getStorageService().setItem('user_avatar', _userAvatar);
+
+                    setState(() {
+                      _userName = nameController.text;
+                    });
+                  }
+                } catch (e) {
+                  print('Error updating user profile: $e');
+                  // Show error message to user
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Gagal memperbarui profil: ${e.toString()}')),
+                  );
+                }
+
                 Navigator.of(context).pop();
               },
               style: ElevatedButton.styleFrom(
@@ -184,6 +234,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ],
         );
       },
+    );
+  }
+
+  Future<void> _logout() async {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Konfirmasi Logout'),
+        content: const Text('Apakah Anda yakin ingin keluar dari aplikasi? Semua progress belajar Anda akan terhapus'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Batal'),
+          ),
+          ElevatedButton(
+            onPressed: () async {
+              try {
+                // Clear local storage
+                await getStorageService().clear();
+                
+                // Sign out from Firebase
+                await FirebaseAuth.instance.signOut();
+                
+                // Navigate back to login screen
+                if (mounted) {
+                  Navigator.of(context).popUntil((route) => route.isFirst);
+                }
+              } catch (e) {
+                print('Error during logout: $e');
+                if (mounted) {
+                  Navigator.of(context).pop(); // Close the dialog
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Gagal logout. Silakan coba lagi.')),
+                  );
+                }
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF1A237E), // Deep Indigo
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('Logout'),
+          ),
+        ],
+      ),
     );
   }
 
@@ -214,6 +309,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           ),
           centerTitle: true,
+          actions: [
+            IconButton(
+              icon: const Icon(
+                Icons.logout,
+                color: Color(0xFFFAFAFA), // Energetic Orange
+              ),
+              onPressed: _logout,
+            ),
+          ],
         ),
         body: SafeArea(
           child: Padding(

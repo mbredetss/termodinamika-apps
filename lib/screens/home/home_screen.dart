@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:termodinamika_apps/screens/relax/relax_screen.dart';
 import 'package:termodinamika_apps/services/platform_storage_service.dart';
 import '../materi/materi_screen.dart';
@@ -36,6 +38,38 @@ class _HomeScreenState extends State<HomeScreen> {
     _checkTutorialStatus();
     _loadUserName();
     _loadProgressFromStorage();
+    
+    // Check if user has avatar, if not show avatar selection dialog
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndShowAvatarSelection();
+    });
+  }
+  
+  Future<void> _checkAndShowAvatarSelection() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      DocumentSnapshot userDoc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(user.uid)
+          .get();
+          
+      if (userDoc.exists) {
+        Map<String, dynamic>? userData = userDoc.data() as Map<String, dynamic>?;
+        if (userData != null && userData.containsKey('avatar')) {
+          String? userAvatar = userData['avatar'];
+          if (userAvatar == null || userAvatar.isEmpty) {
+            // User doesn't have an avatar, show selection dialog
+            _showAvatarSelectionDialog();
+          } else {
+            // Save avatar to local storage for immediate use
+            await getStorageService().setItem('user_avatar', userAvatar);
+          }
+        } else {
+          // Avatar field doesn't exist, show selection dialog
+          _showAvatarSelectionDialog();
+        }
+      }
+    }
   }
 
   Future<void> _checkTutorialStatus() async {
@@ -46,30 +80,44 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadUserName() async {
-    String? savedName = await getStorageService().getItem('user_name');
-    if (savedName != null && savedName.isNotEmpty) {
-      setState(() {
-        _userName = savedName;
-      });
+    try {
+      User? user = FirebaseAuth.instance.currentUser;
+      if (user != null) {
+        DocumentSnapshot userDoc = await FirebaseFirestore.instance
+            .collection('users')
+            .doc(user.uid)
+            .get();
+        
+        if (userDoc.exists) {
+          String? userName = userDoc.get('name');
+          if (userName != null && userName.isNotEmpty) {
+            setState(() {
+              _userName = userName;
+            });
 
-      // If user has a name but hasn't completed the tutorial, show it after UI is built
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (!_tutorialCompleted) {
-          _showTutorial();
+            // If user has a name but hasn't completed the tutorial, show it after UI is built
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!_tutorialCompleted) {
+                _showTutorial();
+              }
+            });
+          }
         }
-      });
-    } else {
-      _showNameInputDialog();
+      }
+    } catch (e) {
+      print('Error loading user name: $e');
     }
   }
 
-  Future<void> _showNameInputDialog() async {
-    String? enteredName = await showDialog<String>(
+  Future<void> _showAvatarSelectionDialog() async {
+    User? user = FirebaseAuth.instance.currentUser;
+    if (user == null) return;
+
+    String selectedAvatar = 'assets/images/avatar-1.png'; // Default avatar
+
+    await showDialog(
       context: context,
       builder: (BuildContext context) {
-        final controller = TextEditingController();
-        String selectedAvatar = 'assets/images/avatar-1.png'; // Default avatar
-
         return PopScope(
           canPop: false, // Prevent back button from dismissing the dialog
           child: StatefulBuilder(
@@ -77,26 +125,12 @@ class _HomeScreenState extends State<HomeScreen> {
               return AlertDialog(
                 title: const Text('Selamat Datang!'),
                 content: SizedBox(
-                  height: 350,
+                  height: 300,
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       const Text(
-                        'Masukkan nama kamu dan pilih avatar untuk memulai belajar:',
-                      ),
-                      const SizedBox(height: 16),
-                      TextField(
-                        controller: controller,
-                        decoration: const InputDecoration(
-                          hintText: 'Nama kamu...',
-                          border: OutlineInputBorder(),
-                          contentPadding: EdgeInsets.all(16.0),
-                        ),
-                        onSubmitted: (value) {
-                          if (value.trim().isNotEmpty) {
-                            Navigator.of(context).pop(value.trim());
-                          }
-                        },
+                        'Pilih avatar untuk memulai belajar:',
                       ),
                       const SizedBox(height: 16),
                       const Text('Pilih Avatar:'),
@@ -219,26 +253,26 @@ class _HomeScreenState extends State<HomeScreen> {
                     child: const Text('Batal'),
                   ),
                   ElevatedButton(
-                    onPressed: () {
-                      if (controller.text.trim().isNotEmpty) {
-                        // Save both name and avatar to storage
-                        getStorageService().setItem(
-                          'user_name',
-                          controller.text.trim(),
-                        );
-                        getStorageService().setItem(
-                          'user_avatar',
-                          selectedAvatar,
-                        );
-                        Navigator.of(context).pop(controller.text.trim());
+                    onPressed: () async {
+                      // Save avatar to Firestore
+                      await FirebaseFirestore.instance
+                          .collection('users')
+                          .doc(user.uid)
+                          .update({
+                        'avatar': selectedAvatar,
+                      });
+                      
+                      // Also save to local storage for immediate use
+                      await getStorageService().setItem('user_avatar', selectedAvatar);
+                      
+                      Navigator.of(context).pop();
 
-                        // Show tutorial after user saves their information
-                        WidgetsBinding.instance.addPostFrameCallback((_) {
-                          if (!_tutorialCompleted) {
-                            _showTutorial();
-                          }
-                        });
-                      }
+                      // Show tutorial after user saves their information
+                      WidgetsBinding.instance.addPostFrameCallback((_) {
+                        if (!_tutorialCompleted) {
+                          _showTutorial();
+                        }
+                      });
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: const Color(0xFF1A237E), // Deep Indigo
@@ -253,12 +287,6 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       },
     );
-
-    if (enteredName != null && enteredName.isNotEmpty) {
-      setState(() {
-        _userName = enteredName;
-      });
-    }
   }
 
   Future<void> _loadProgressFromStorage() async {

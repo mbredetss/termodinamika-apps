@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter_markdown_plus/flutter_markdown_plus.dart';
 import 'package:getwidget/getwidget.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -35,7 +37,8 @@ class _MateriScreenState extends State<MateriScreen> {
   bool _isQuizAvailable = true;
   // Key to force rebuild of Markdown widget when content changes
   Key? _markdownKey;
-  String _activeSearchKeyword = ''; // Track active search keyword for highlighting
+  String _activeSearchKeyword =
+      ''; // Track active search keyword for highlighting
   List<Map<String, dynamic>> _quizHistory = [];
 
   @override
@@ -112,7 +115,7 @@ class _MateriScreenState extends State<MateriScreen> {
     return null;
   }
 
-  // Load quiz history for the current materi
+  // Load quiz history for the current materi from Firestore
   Future<void> _loadQuizHistory() async {
     var currentIndex = findSubMateriIndex(currentContent);
     if (currentIndex != null) {
@@ -120,10 +123,36 @@ class _MateriScreenState extends State<MateriScreen> {
       String materiName = materi['namaMateri'];
 
       if (materiName == 'Evaluasi Akhir') {
-        List<Map<String, dynamic>> history = await QuizHistoryService.getQuizHistory(materiName);
-        setState(() {
-          _quizHistory = history;
-        });
+        try {
+          User? user = FirebaseAuth.instance.currentUser;
+          if (user != null) {
+            QuerySnapshot quizHistorySnapshot = await FirebaseFirestore.instance
+                .collection('users')
+                .doc(user.uid)
+                .collection('quizHistory')
+                .where('materiName', isEqualTo: materiName)
+                .orderBy('date', descending: true)
+                .get();
+
+            List<Map<String, dynamic>> history = [];
+            for (var doc in quizHistorySnapshot.docs) {
+              var data = doc.data() as Map<String, dynamic>;
+              history.add(data);
+            }
+
+            setState(() {
+              _quizHistory = history;
+            });
+          }
+        } catch (e) {
+          print('Error loading quiz history from Firestore: $e');
+          // Fallback to local storage if Firestore fails
+          List<Map<String, dynamic>> history =
+              await QuizHistoryService.getQuizHistory(materiName);
+          setState(() {
+            _quizHistory = history;
+          });
+        }
       }
     }
   }
@@ -171,7 +200,9 @@ class _MateriScreenState extends State<MateriScreen> {
         const SizedBox(height: 16),
         Container(
           decoration: BoxDecoration(
-            border: Border.all(color: const Color(0xFFE0E0E0)), // Light grey border
+            border: Border.all(
+              color: const Color(0xFFE0E0E0),
+            ), // Light grey border
             borderRadius: BorderRadius.circular(8),
           ),
           child: Table(
@@ -197,7 +228,9 @@ class _MateriScreenState extends State<MateriScreen> {
                 final isPassed = record['isPassed'] as bool;
                 return TableRow(
                   children: [
-                    _buildTableCell(record['date'] as String),
+                    _buildTableCell(
+                      (record['date'] as Timestamp).toDate().toString(),
+                    ),
                     _buildTableCell('${record['percentage'].round()}%'),
                     _buildStatusCell(isPassed),
                   ],
@@ -230,9 +263,17 @@ class _MateriScreenState extends State<MateriScreen> {
 
   // Build the status cell with colored box
   Widget _buildStatusCell(bool isPassed) {
-    Color backgroundColor = isPassed ? const Color(0xFFC8E6C9) : const Color(0xFFFFCDD2); // Light green for passed, light red for failed
-    Color borderColor = isPassed ? const Color(0xFF388E3C) : const Color(0xFFD32F2F); // Green for passed, red for failed
-    Color textColor = isPassed ? const Color(0xFF388E3C) : const Color(0xFFD32F2F); // Green for passed, red for failed
+    Color backgroundColor = isPassed
+        ? const Color(0xFFC8E6C9)
+        : const Color(
+            0xFFFFCDD2,
+          ); // Light green for passed, light red for failed
+    Color borderColor = isPassed
+        ? const Color(0xFF388E3C)
+        : const Color(0xFFD32F2F); // Green for passed, red for failed
+    Color textColor = isPassed
+        ? const Color(0xFF388E3C)
+        : const Color(0xFFD32F2F); // Green for passed, red for failed
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
@@ -241,10 +282,7 @@ class _MateriScreenState extends State<MateriScreen> {
         decoration: BoxDecoration(
           color: backgroundColor,
           borderRadius: BorderRadius.circular(4),
-          border: Border.all(
-            color: borderColor,
-            width: 1,
-          ),
+          border: Border.all(color: borderColor, width: 1),
         ),
         child: Text(
           isPassed ? 'Lulus' : 'Belum Lulus',
@@ -258,7 +296,6 @@ class _MateriScreenState extends State<MateriScreen> {
       ),
     );
   }
-
 
   // Show history modal
   void showHistoryModal() {
@@ -302,10 +339,9 @@ class _MateriScreenState extends State<MateriScreen> {
                   ],
                 ),
                 const SizedBox(height: 16),
-                Expanded( // Use expanded to fill available space
-                  child: SingleChildScrollView(
-                    child: _buildHistoryWidget(),
-                  ),
+                Expanded(
+                  // Use expanded to fill available space
+                  child: SingleChildScrollView(child: _buildHistoryWidget()),
                 ),
                 const SizedBox(height: 16),
                 Align(
@@ -315,7 +351,9 @@ class _MateriScreenState extends State<MateriScreen> {
                       Navigator.of(context).pop();
                     },
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF6D00), // Energetic Orange
+                      backgroundColor: const Color(
+                        0xFFFF6D00,
+                      ), // Energetic Orange
                       foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(24),
@@ -437,7 +475,8 @@ class _MateriScreenState extends State<MateriScreen> {
     var currentSubMateriList = currentMateri['subMateri'] as List;
 
     // Check if we are at the last subMateri (latihan soal) in the final evaluation
-    if (currentMateri['namaMateri'] == 'Evaluasi Akhir' && currentSubMateriIndex == currentSubMateriList.length - 1) {
+    if (currentMateri['namaMateri'] == 'Evaluasi Akhir' &&
+        currentSubMateriIndex == currentSubMateriList.length - 1) {
       // Check if this last subMateri is the latihan soal (ujian)
       var lastSubMateri = currentSubMateriList[currentSubMateriIndex];
       String lastSubMateriName = lastSubMateri['nama'] as String;
@@ -446,7 +485,6 @@ class _MateriScreenState extends State<MateriScreen> {
       // check if the quiz has been completed before allowing to move on
       if (lastSubMateriName.toLowerCase().contains('latihan soal') ||
           lastSubMateriName.toLowerCase().contains('ujian')) {
-
         bool isQuizCompleted = lastSubMateri['isDone'] == true;
 
         // If quiz is not completed, show warning and don't allow navigation
@@ -466,10 +504,7 @@ class _MateriScreenState extends State<MateriScreen> {
                 ),
                 content: const Text(
                   'Kerjakan Latihan Soal terlebih dahulu sebelum Anda bisa lanjut ke materi berikutnya!',
-                  style: TextStyle(
-                    fontFamily: 'StackSansText',
-                    fontSize: 14,
-                  ),
+                  style: TextStyle(fontFamily: 'StackSansText', fontSize: 14),
                 ),
                 actions: [
                   TextButton(
@@ -538,7 +573,8 @@ class _MateriScreenState extends State<MateriScreen> {
         // Check if the next materi is accessible based on learning path
         bool isAccessible = await LearningPathService.canAccessSubMateri(
           materiName: dataMateri[nextMateriIndex]['namaMateri'],
-          subMateriName: (dataMateri[nextMateriIndex]['subMateri'] as List)[0]['nama'],
+          subMateriName:
+              (dataMateri[nextMateriIndex]['subMateri'] as List)[0]['nama'],
         );
 
         if (isAccessible) {
@@ -666,9 +702,7 @@ class _MateriScreenState extends State<MateriScreen> {
             ),
             // Show the cooldown message if this is the last subMateri and the quiz is on cooldown
             if (isLastSubMateri() && !_isQuizAvailable)
-              CountdownDisplay(
-                remainingCooldownTime: _remainingCooldownTime,
-              ),
+              CountdownDisplay(remainingCooldownTime: _remainingCooldownTime),
             // Show the "Mulai" and "Riwayat" buttons if this is the last subMateri in the final evaluation materi
             if (isLastSubMateri() && isFinalEvaluation())
               Padding(
@@ -703,7 +737,8 @@ class _MateriScreenState extends State<MateriScreen> {
                         child: Opacity(
                           opacity: 0.5,
                           child: GFButton(
-                            onPressed: () {}, // Empty callback to disable functionality
+                            onPressed:
+                                () {}, // Empty callback to disable functionality
                             text: 'Mulai',
                             textStyle: const TextStyle(
                               fontFamily: 'StackSansText',
@@ -836,8 +871,6 @@ class _MateriScreenState extends State<MateriScreen> {
     return currentMateri['namaMateri'] == 'Evaluasi Akhir';
   }
 
-
-
   // Check if the specified materi is completed (all subMateri done)
   Future<bool> isMateriCompleted(int materiIndex) async {
     if (materiIndex < 0 || materiIndex >= dataMateri.length) return false;
@@ -884,7 +917,8 @@ class _MateriScreenState extends State<MateriScreen> {
       builder: (BuildContext context) {
         return WarningModal(
           title: 'Warning',
-          content: 'Maaf, Anda belum bisa membuka modul ini. Mohon pastikan semua modul sebelumnya (termasuk submission) sudah diselesaikan.',
+          content:
+              'Maaf, Anda belum bisa membuka modul ini. Mohon pastikan semua modul sebelumnya (termasuk submission) sudah diselesaikan.',
           onButtonPressed: () {
             Navigator.of(context).pop(); // Close the modal
           },
@@ -900,7 +934,8 @@ class _MateriScreenState extends State<MateriScreen> {
       builder: (BuildContext context) {
         return WarningModal(
           title: 'Warning',
-          content: 'Anda hanya dapat berpindah ke submateri lain dalam materi yang sama. Mohon selesaikan materi saat ini terlebih dahulu.',
+          content:
+              'Anda hanya dapat berpindah ke submateri lain dalam materi yang sama. Mohon selesaikan materi saat ini terlebih dahulu.',
           onButtonPressed: () {
             Navigator.of(context).pop(); // Close the modal
           },
@@ -916,7 +951,8 @@ class _MateriScreenState extends State<MateriScreen> {
       builder: (BuildContext context) {
         return WarningModal(
           title: 'Warning',
-          content: 'Maaf, Anda belum bisa membuka modul ini. Mohon pastikan semua modul sebelumnya (termasuk latihan soal) sudah diselesaikan.',
+          content:
+              'Maaf, Anda belum bisa membuka modul ini. Mohon pastikan semua modul sebelumnya (termasuk latihan soal) sudah diselesaikan.',
           onButtonPressed: () {
             Navigator.of(context).pop(); // Close the modal
           },
@@ -933,7 +969,9 @@ class _MateriScreenState extends State<MateriScreen> {
 
       bool isInCooldown = await CooldownService.isInCooldown(materiName);
       if (isInCooldown) {
-        DateTime? cooldownEndTime = await CooldownService.loadCooldown(materiName);
+        DateTime? cooldownEndTime = await CooldownService.loadCooldown(
+          materiName,
+        );
         if (cooldownEndTime != null) {
           Duration timeUntilEnd = cooldownEndTime.difference(DateTime.now());
           int remainingSeconds = timeUntilEnd.inSeconds;
@@ -979,7 +1017,9 @@ class _MateriScreenState extends State<MateriScreen> {
   }
 
   Future<void> recordQuizAttempt(String materiName) async {
-    DateTime cooldownEndTime = DateTime.now().add(Duration(minutes: 15)); // 15 minutes from now
+    DateTime cooldownEndTime = DateTime.now().add(
+      Duration(minutes: 15),
+    ); // 15 minutes from now
     await CooldownService.saveCooldown(materiName, cooldownEndTime);
 
     setState(() {
@@ -1012,7 +1052,8 @@ class _MateriScreenState extends State<MateriScreen> {
     var currentIndex = findSubMateriIndex(currentContent);
     String? materiName = '';
     if (currentIndex != null) {
-      materiName = dataMateri[currentIndex.materiIndex]['namaMateri'] as String?;
+      materiName =
+          dataMateri[currentIndex.materiIndex]['namaMateri'] as String?;
     }
 
     // For the new structure, the quiz is only in the "Evaluasi Akhir" section
@@ -1134,7 +1175,10 @@ class _MateriScreenState extends State<MateriScreen> {
           ),
           actions: [
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0),
+              padding: const EdgeInsets.symmetric(
+                horizontal: 24.0,
+                vertical: 16.0,
+              ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
@@ -1149,7 +1193,10 @@ class _MateriScreenState extends State<MateriScreen> {
                       fontWeight: FontWeight.w500,
                       color: Colors.black87,
                     ),
-                    color: Colors.grey[300] ?? Colors.grey, // Fallback to Colors.grey if Colors.grey[300] is null
+                    color:
+                        Colors.grey[300] ??
+                        Colors
+                            .grey, // Fallback to Colors.grey if Colors.grey[300] is null
                     shape: GFButtonShape.pills,
                     size: GFSize.SMALL,
                     elevation: 2,
@@ -1171,14 +1218,17 @@ class _MateriScreenState extends State<MateriScreen> {
                           // Get questions from the final evaluation section
                           var soalList = materi['soal'] as List?;
                           if (soalList != null && soalList.isNotEmpty) {
-                            allQuestions = soalList.cast<Map<String, dynamic>>();
+                            allQuestions = soalList
+                                .cast<Map<String, dynamic>>();
                           }
                         } else {
                           // Collect questions from all materi sections
                           for (var materiSection in dataMateri) {
                             var soalList = materiSection['soal'] as List?;
                             if (soalList != null && soalList.isNotEmpty) {
-                              allQuestions.addAll(soalList.cast<Map<String, dynamic>>());
+                              allQuestions.addAll(
+                                soalList.cast<Map<String, dynamic>>(),
+                              );
                             }
                           }
                         }
@@ -1188,12 +1238,11 @@ class _MateriScreenState extends State<MateriScreen> {
                             Navigator.push(
                               context,
                               MaterialPageRoute(
-                                builder: (context) =>
-                                    LatihanSoalScreen(
-                                      soalList: allQuestions,
-                                      materiName: materi['namaMateri'] as String?,
-                                      recordQuizAttempt: recordQuizAttempt,
-                                    ),
+                                builder: (context) => LatihanSoalScreen(
+                                  soalList: allQuestions,
+                                  materiName: materi['namaMateri'] as String?,
+                                  recordQuizAttempt: recordQuizAttempt,
+                                ),
                               ),
                             );
                           }
@@ -1339,7 +1388,8 @@ class _MateriScreenState extends State<MateriScreen> {
     }
 
     // Check if it's the final evaluation materi
-    if (materiIndex == dataMateri.length - 1 && dataMateri[materiIndex]['namaMateri'] == 'Evaluasi Akhir') {
+    if (materiIndex == dataMateri.length - 1 &&
+        dataMateri[materiIndex]['namaMateri'] == 'Evaluasi Akhir') {
       // The final evaluation is accessible only when all other materi are completed
       for (int i = 0; i < dataMateri.length - 1; i++) {
         if (dataMateri[i]['isDoneMateri'] != true) {
@@ -1431,8 +1481,7 @@ class _MateriScreenState extends State<MateriScreen> {
           // Check if the URI is a relative path that should point to assets
           if (uri.path.contains('Aspose.Words')) {
             // Map the image names to actual asset paths
-            String assetPath =
-                'assets/images/${uri.path.split('/').last}';
+            String assetPath = 'assets/images/${uri.path.split('/').last}';
             return Container(
               margin: const EdgeInsets.symmetric(
                 horizontal: 5.0,
@@ -1675,7 +1724,10 @@ class _SearchOverlayState extends State<SearchOverlay> {
           String namaSubMateri = subMateri['nama'] as String;
 
           // Count occurrences of the keyword in the content
-          int count = _countKeywordOccurrences(isiMateri.toLowerCase(), _searchKeyword);
+          int count = _countKeywordOccurrences(
+            isiMateri.toLowerCase(),
+            _searchKeyword,
+          );
 
           if (count > 0) {
             _searchResults.add({
@@ -1729,71 +1781,79 @@ class _SearchOverlayState extends State<SearchOverlay> {
             hintText: 'Cari dalam materi...',
             hintStyle: const TextStyle(color: Colors.white),
             border: InputBorder.none,
-            prefixIcon: const Icon(Icons.search, color: Color(0xFFFF6D00)), // Orange icon
+            prefixIcon: const Icon(
+              Icons.search,
+              color: Color(0xFFFF6D00),
+            ), // Orange icon
           ),
-          style: const TextStyle(color: Colors.white), // White text for contrast
+          style: const TextStyle(
+            color: Colors.white,
+          ), // White text for contrast
           autofocus: true,
         ),
       ),
       body: _searchResults.isEmpty
           ? (_searchKeyword.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.search,
-                        size: 64,
-                        color: Colors.grey[400],
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Masukkan kata kunci untuk pencarian',
-                        style: TextStyle(
-                          fontFamily: 'StackSansText',
-                          fontSize: 16,
-                          color: Colors.grey,
+                ? Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.search, size: 64, color: Colors.grey[400]),
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Masukkan kata kunci untuk pencarian',
+                          style: TextStyle(
+                            fontFamily: 'StackSansText',
+                            fontSize: 16,
+                            color: Colors.grey,
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                )
-              : Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.search_off,
-                        size: 64,
-                        color: Colors.grey[400],
-                      ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'Tidak ditemukan hasil pencarian',
-                        style: TextStyle(
-                          fontFamily: 'StackSansText',
-                          fontSize: 16,
-                          color: Colors.grey,
+                      ],
+                    ),
+                  )
+                : Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.search_off,
+                          size: 64,
+                          color: Colors.grey[400],
                         ),
-                      ),
-                    ],
-                  ),
-                ))
+                        const SizedBox(height: 16),
+                        const Text(
+                          'Tidak ditemukan hasil pencarian',
+                          style: TextStyle(
+                            fontFamily: 'StackSansText',
+                            fontSize: 16,
+                            color: Colors.grey,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ))
           : ListView.builder(
               itemCount: _searchResults.length,
               itemBuilder: (context, index) {
                 var result = _searchResults[index];
                 return Card(
-                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  margin: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 8,
+                  ),
                   child: ListTile(
                     contentPadding: const EdgeInsets.all(16),
                     title: Row(
                       children: [
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFFFFE0B2), // Light orange background
+                            color: const Color(
+                              0xFFFFE0B2,
+                            ), // Light orange background
                             borderRadius: BorderRadius.circular(20),
                           ),
                           child: Text(
@@ -1820,7 +1880,10 @@ class _SearchOverlayState extends State<SearchOverlay> {
                     ),
                     subtitle: Padding(
                       padding: const EdgeInsets.only(top: 8.0),
-                      child: _buildHighlightedPreview(result['isiMateri'], _searchKeyword),
+                      child: _buildHighlightedPreview(
+                        result['isiMateri'],
+                        _searchKeyword,
+                      ),
                     ),
                     onTap: () {
                       widget.onResultTap(result, _searchKeyword);
@@ -1844,10 +1907,16 @@ class _SearchOverlayState extends State<SearchOverlay> {
       // Get the text before the keyword (up to 50 characters before)
       int startPreview = (startIndex - 50).clamp(0, content.length);
       // Get the text after the keyword (up to 100 characters after)
-      int endPreview = (startIndex + keyword.length + 100).clamp(0, content.length);
+      int endPreview = (startIndex + keyword.length + 100).clamp(
+        0,
+        content.length,
+      );
 
       String before = content.substring(startPreview, startIndex);
-      String matched = content.substring(startIndex, startIndex + keyword.length);
+      String matched = content.substring(
+        startIndex,
+        startIndex + keyword.length,
+      );
       String after = content.substring(startIndex + keyword.length, endPreview);
 
       // Add "..." if the preview is truncated
@@ -1866,25 +1935,24 @@ class _SearchOverlayState extends State<SearchOverlay> {
             children: [
               TextSpan(
                 text: prefix + before,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.black54,
-                ),
+                style: const TextStyle(fontSize: 14, color: Colors.black54),
               ),
               TextSpan(
                 text: matched,
                 style: const TextStyle(
-                  backgroundColor: Color.fromARGB(120, 255, 235, 59), // Pale yellow
+                  backgroundColor: Color.fromARGB(
+                    120,
+                    255,
+                    235,
+                    59,
+                  ), // Pale yellow
                   fontWeight: FontWeight.bold,
                   color: Colors.black87,
                 ),
               ),
               TextSpan(
                 text: after + suffix,
-                style: const TextStyle(
-                  fontSize: 14,
-                  color: Colors.black54,
-                ),
+                style: const TextStyle(fontSize: 14, color: Colors.black54),
               ),
             ],
           ),
