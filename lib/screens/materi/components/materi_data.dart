@@ -155,6 +155,7 @@ Perilaku gas pada kondisi tertentu dapat dijelaskan melalui beberapa hukum gas y
    atau
 
    ![](Aspose.Words.74c2c7e1-c439-44b4-8b27-66b469c5eeeb.013.png)
+   [Klik disini untuk melihat simulasi "Hukum-Hukum Tentang Gas"](https://phet.colorado.edu/sims/html/gas-properties/latest/gas-properties_en.html)
 ''',
         'isDone': false,
       },
@@ -307,6 +308,7 @@ Dalam proses termodinamika, energi dapat berpindah ke dalam atau keluar dari sis
 |Lingkungan melakukan kerja pada sistem|+|-|Energi masuk ke sistem|
 
 Tabel di atas menunjukkan bahwa tanda positif atau negatif pada Q dan W bergantung pada arah perpindahan energi.
+[Klik disini untuk melihat simulasi "Hukum Pertama Termodinamika"](https://phet.colorado.edu/sims/html/energy-forms-and-changes/latest/energy-forms-and-changes_en.html)
 ''',
         'isDone': false,
       },
@@ -355,6 +357,7 @@ Tabel di atas menunjukkan bahwa tanda positif atau negatif pada Q dan W bergantu
     ![](Aspose.Words.74c2c7e1-c439-44b4-8b27-66b469c5eeeb.021.png)
 
     dengan ![](Aspose.Words.74c2c7e1-c439-44b4-8b27-66b469c5eeeb.022.png), yaitu perbandingan kapasitas panas pada tekanan dan volume tetap.
+    [Klik disini untuk melihat simulasi "Hukum Pertama Termodinamika"](https://phet.colorado.edu/sims/html/gas-properties/latest/gas-properties_en.html)
 ''',
         'isDone': false,
       },
