@@ -137,42 +137,42 @@ class _LoginScreenState extends State<LoginScreen> {
             ],
           ),
         ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            const SizedBox(height: 80),
-            Padding(
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  FadeInUp(
-                    duration: const Duration(milliseconds: 1000),
-                    child: const Text(
-                      "Login",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 40,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              const SizedBox(height: 80),
+              Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: <Widget>[
+                    FadeInUp(
+                      duration: const Duration(milliseconds: 1000),
+                      child: const Text(
+                        "Login",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 40,
+                        ),
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 10),
-                  FadeInUp(
-                    duration: const Duration(milliseconds: 1300),
-                    child: const Text(
-                      "Selamat datang di Mindful Thermo",
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
+                    const SizedBox(height: 10),
+                    FadeInUp(
+                      duration: const Duration(milliseconds: 1300),
+                      child: const Text(
+                        "Selamat datang di Mindful Thermo",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 18,
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: Container(
+              const SizedBox(height: 20),
+              Container(
                 decoration: const BoxDecoration(
                   color: Color(0xFFFAFAFA), // White/Off-White
                   borderRadius: BorderRadius.only(
@@ -342,8 +342,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
